@@ -1,249 +1,300 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { useRef, useEffect } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
+import { useTypewriter } from "@/hooks/useTypewriter";
+import { useArchitectMode } from "@/hooks/useArchitectMode";
 
-gsap.registerPlugin(ScrollTrigger);
+const HEADLINE_LINES = [
+  { text: "REFLETINDO", color: "#ffffff", architectColor: "#1C4587" },
+  { text: "QUALIDADE  EM CADA", color: "#5BC8F5", architectColor: "#1C4587" },
+  { text: "PROJETO", color: "#ffffff", architectColor: "#1C4587" },
+] as const;
 
-const FONT_DISPLAY = "var(--font-display)";
-const FONT_JULIUS = "var(--font-julius)";
-const FONT_SLAB = "var(--font-slab)";
-
-const headingStyle = {
-  fontFamily: FONT_DISPLAY,
-  fontWeight: 200,
-  fontSize: "clamp(48px, 5.6vw, 80px)",
-} as const;
+const TRANSITION_DURATION = 0.8;
+const TRANSITION_EASE = "power3.inOut";
 
 export default function HeroSection() {
-  const imgContainerRef = useRef<HTMLDivElement>(null);
-  const imgParallaxRef = useRef<HTMLDivElement>(null);
-  const descRef = useRef<HTMLDivElement>(null);
-  const blueLayerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const { active } = useArchitectMode();
 
-  useGSAP(() => {
-    if (imgContainerRef.current) {
-      gsap.from(imgContainerRef.current, {
-        xPercent: 12,
-        autoAlpha: 0,
-        duration: 1.4,
-        ease: "power3.out",
-        delay: 0.2,
-      });
-    }
-
-    if (!imgParallaxRef.current) return;
-    gsap.to(imgParallaxRef.current, {
-      yPercent: -18,
-      ease: "none",
-      scrollTrigger: {
-        trigger: imgParallaxRef.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: 1.2,
-      },
+  useEffect(() => {
+    if (!sectionRef.current) return;
+    gsap.to(sectionRef.current, {
+      backgroundColor: active ? "#ffffff" : "#0d1b2e",
+      duration: TRANSITION_DURATION,
+      ease: TRANSITION_EASE,
     });
-  });
-
-  const onDescEnter = useCallback(() => {
-    gsap.to(blueLayerRef.current, {
-      clipPath: "inset(0 0% 0 0)",
-      duration: 0.75,
-      ease: "power2.inOut",
-    });
-  }, []);
-
-  const onDescLeave = useCallback(() => {
-    gsap.to(blueLayerRef.current, {
-      clipPath: "inset(0 100% 0 0)",
-      duration: 0.55,
-      ease: "power2.inOut",
-    });
-  }, []);
+  }, [active]);
 
   return (
-    <section className="relative h-screen bg-white overflow-x-hidden">
-      {/* Circular photo com parallax */}
+    <section
+      ref={sectionRef}
+      className="relative h-screen w-full overflow-hidden flex flex-col items-center justify-center"
+      style={{ background: "#0d1b2e" }}
+    >
+      <Background active={active} />
+      <Content active={active} />
+      <ScrollIndicator active={active} />
+      <WatermarkLogo active={active} />
+    </section>
+  );
+}
+
+function Background({ active }: { active: boolean }) {
+  const imageRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!imageRef.current || !overlayRef.current) return;
+    gsap.to(imageRef.current, {
+      opacity: active ? 0 : 1,
+      duration: TRANSITION_DURATION,
+      ease: TRANSITION_EASE,
+    });
+    gsap.to(overlayRef.current, {
+      opacity: active ? 0 : 1,
+      duration: TRANSITION_DURATION,
+      ease: TRANSITION_EASE,
+    });
+  }, [active]);
+
+  return (
+    <div className="absolute inset-0 z-0">
+      <div ref={imageRef}>
+        <Image
+          src="/images/owner-photo.png"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          aria-hidden="true"
+          className="object-cover"
+          style={{ objectPosition: "center 15%", opacity: 0.55 }}
+        />
+      </div>
       <div
-        ref={imgContainerRef}
-        className="absolute hidden md:block rounded-full overflow-hidden"
+        ref={overlayRef}
+        className="absolute inset-0"
         style={{
-          width: "84vw",
-          height: "80vw",
-          maxWidth: "1179px",
-          maxHeight: "1118px",
-          left: "50%",
-          top: "-3%",
+          background:
+            "linear-gradient(to bottom, rgba(13,27,46,0.45) 0%, rgba(13,27,46,0.15) 35%, rgba(13,27,46,0.70) 100%)",
+        }}
+      />
+    </div>
+  );
+}
+
+function Content({ active }: { active: boolean }) {
+  return (
+    <div className="relative z-10 flex flex-col items-center" style={{ gap: "32px", paddingTop: "72px" }}>
+      <Headline active={active} />
+      <SearchBar active={active} />
+    </div>
+  );
+}
+
+function Headline({ active }: { active: boolean }) {
+  const lineRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const { displayLines, cursorLine, done } = useTypewriter({
+    lines: [...HEADLINE_LINES],
+    charDuration: 0.05,
+    lineDelay: 0.18,
+    initialDelay: 0.3,
+    waitForLoading: true,
+  });
+
+  useEffect(() => {
+    lineRefs.current.forEach((el, i) => {
+      if (!el) return;
+      gsap.to(el, {
+        color: active ? HEADLINE_LINES[i].architectColor : HEADLINE_LINES[i].color,
+        duration: TRANSITION_DURATION,
+        ease: TRANSITION_EASE,
+      });
+    });
+  }, [active]);
+
+  const titleStyle: React.CSSProperties = {
+    fontFamily: "var(--font-jura)",
+    fontWeight: 700,
+    fontSize: "clamp(28px, 4.5vw, 56px)",
+    letterSpacing: "0.20em",
+    lineHeight: 1.05,
+    textTransform: "uppercase",
+    display: "block",
+    textAlign: "center",
+    minHeight: "1.1em",
+    whiteSpace: "pre",
+  };
+
+  return (
+    <div className="flex flex-col items-center" style={{ gap: "0px" }}>
+      {HEADLINE_LINES.map((line, i) => (
+        <span
+          key={i}
+          ref={(el) => { lineRefs.current[i] = el; }}
+          style={{ ...titleStyle, color: line.color }}
+        >
+          {displayLines[i]}
+          {cursorLine === i && !done && <Cursor active={active} />}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function Cursor({ active }: { active: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    gsap.to(ref.current, {
+      background: active ? "#1C4587" : "#5BC8F5",
+      duration: TRANSITION_DURATION,
+      ease: TRANSITION_EASE,
+    });
+  }, [active]);
+
+  return (
+    <span
+      ref={ref}
+      className="inline-block"
+      style={{
+        width: "2px",
+        height: "0.85em",
+        background: "#5BC8F5",
+        marginLeft: "2px",
+        verticalAlign: "middle",
+        animation: "blink 0.6s step-end infinite",
+      }}
+    />
+  );
+}
+
+function SearchBar({ active }: { active: boolean }) {
+  const borderRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!borderRef.current || !textRef.current) return;
+    gsap.to(borderRef.current, {
+      borderColor: active ? "rgba(28,69,135,0.55)" : "rgba(255,255,255,0.55)",
+      duration: TRANSITION_DURATION,
+      ease: TRANSITION_EASE,
+    });
+    gsap.to(textRef.current, {
+      color: active ? "rgba(28,69,135,0.50)" : "rgba(255,255,255,0.50)",
+      duration: TRANSITION_DURATION,
+      ease: TRANSITION_EASE,
+    });
+  }, [active]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 22 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 2.8 }}
+      style={{ width: "100%", maxWidth: "580px", padding: "0 20px" }}
+    >
+      <div
+        ref={borderRef}
+        style={{
+          border: "1.5px solid rgba(255,255,255,0.55)",
+          borderRadius: "40px",
+          padding: "13px 30px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <div
-          ref={imgParallaxRef}
+        <span
+          ref={textRef}
           style={{
-            position: "absolute",
-            inset: 0,
-            top: "-15%",
-            height: "130%",
+            fontFamily: "var(--font-display)",
+            fontSize: "9px",
+            letterSpacing: "0.26em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.50)",
           }}
         >
-          <Image
-            src="/images/espelhos/image.png"
-            alt="Espelho redondo com LED instalado"
-            fill
-            className="object-cover"
-            style={{ objectPosition: "50% 40%" }}
-            priority
-          />
-        </div>
+          Pesquise seu modelo para deixar sua refletindo qualidade
+        </span>
       </div>
+    </motion.div>
+  );
+}
 
-      {/* Content — Figma: REFLETINDO at X:41 Y:438 em frame 1440px */}
-      <div className="relative z-10 h-full flex flex-col">
-        <div
-          className="flex flex-col items-center text-center lg:items-start lg:text-left"
-          style={{
-            paddingLeft: "clamp(32px, 6vw, 120px)",
-            paddingTop: "clamp(180px, 30vh, 320px)",
-          }}
-        >
-          {/* Small logo icon — above REFLETINDO, matching Figma position */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="hidden lg:block pointer-events-none mb-4"
-            style={{
-              width: "40px",
-              height: "60px",
-              marginLeft: "clamp(120px, 18vw, 260px)",
-            }}
-          >
-            <Image
-              src="/logo-mc.png"
-              alt=""
-              width={54}
-              height={80}
-              className="object-contain w-full h-full opacity-40"
-              aria-hidden="true"
-            />
-          </motion.div>
+function ScrollIndicator({ active }: { active: boolean }) {
+  const lineRef = useRef<SVGLineElement>(null);
+  const pathRef = useRef<SVGPathElement>(null);
 
-          {/* Line 1: REFLETINDO */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="uppercase tracking-[0.01em] text-dark leading-none"
-            style={headingStyle}
-          >
-            REFLETINDO
-          </motion.p>
+  useEffect(() => {
+    const color = active ? "rgba(28,69,135,0.45)" : "rgba(255,255,255,0.45)";
+    if (lineRef.current) {
+      gsap.to(lineRef.current, { attr: { stroke: color }, duration: TRANSITION_DURATION, ease: TRANSITION_EASE });
+    }
+    if (pathRef.current) {
+      gsap.to(pathRef.current, { attr: { stroke: color }, duration: TRANSITION_DURATION, ease: TRANSITION_EASE });
+    }
+  }, [active]);
 
-          {/* Line 2: [QUALIDADE ->] EM CADA */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.45 }}
-            className="flex items-center justify-center gap-3 mt-1 lg:justify-start"
-          >
-            <motion.span
-              className="inline-flex items-center gap-2 text-white uppercase leading-none cursor-default"
-              style={{
-                fontFamily: FONT_JULIUS,
-                fontWeight: 400,
-                fontSize: "clamp(36px, 3.8vw, 55px)",
-                paddingInline: "clamp(14px, 1.2vw, 18px)",
-                paddingBlock: "clamp(8px, 0.7vw, 11px)",
-                background:
-                  "linear-gradient(90deg, #1B38A2 0%, #18318D 53%, #0F2266 100%)",
-                borderRadius: "17px",
-                boxShadow: "0 4px 14px rgba(15, 34, 102, 0.35)",
-              }}
-              whileHover={{
-                scale: 1.04,
-                boxShadow: "0 8px 28px rgba(15, 34, 102, 0.52)",
-              }}
-              transition={{ type: "spring", stiffness: 340, damping: 22 }}
-            >
-              QUALIDADE
-              <ArrowRight
-                size={20}
-                strokeWidth={1.5}
-                className="shrink-0 opacity-80"
-              />
-            </motion.span>
-            <span
-              className="uppercase text-dark leading-none"
-              style={{
-                fontFamily: FONT_SLAB,
-                fontWeight: 400,
-                fontSize: "clamp(24px, 2.4vw, 35px)",
-              }}
-            >
-              EM CADA
-            </span>
-          </motion.div>
+  return (
+    <motion.div
+      className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 3.2, duration: 0.6 }}
+    >
+      <svg width="14" height="38" viewBox="0 0 14 38" fill="none">
+        <line ref={lineRef} x1="7" y1="0" x2="7" y2="28" stroke="rgba(255,255,255,0.45)" strokeWidth="1.2" />
+        <path
+          ref={pathRef}
+          d="M1 22 L7 30 L13 22"
+          stroke="rgba(255,255,255,0.45)"
+          strokeWidth="1.2"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </motion.div>
+  );
+}
 
-          {/* Line 3: PROJETO — Figma: Josefin Slab Light 80px, letter-spacing 6% */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.6 }}
-            className="uppercase text-dark leading-none mt-1"
-            style={{
-              fontFamily: FONT_SLAB,
-              fontWeight: 300,
-              fontSize: "clamp(48px, 5.6vw, 80px)",
-              letterSpacing: "0.06em",
-            }}
-          >
-            PROJETO
-          </motion.p>
+function WatermarkLogo({ active }: { active: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
 
-        </div>
+  useEffect(() => {
+    if (!ref.current) return;
+    const img = ref.current.querySelector("img");
+    if (!img) return;
+    gsap.to(img, {
+      filter: active ? "brightness(0)" : "brightness(1)",
+      duration: TRANSITION_DURATION,
+      ease: TRANSITION_EASE,
+    });
+  }, [active]);
 
-        {/* Description text — efeito pintura azul (wipe) ao passar o mouse */}
-        <div
-          ref={descRef}
-          className="absolute uppercase text-center left-8 right-8 lg:text-left lg:left-[18vw] lg:right-auto lg:max-w-[440px]"
-          style={{
-            fontFamily: FONT_JULIUS,
-            fontWeight: 400,
-            fontSize: "15px",
-            lineHeight: "1.9",
-            bottom: "clamp(60px, 10vh, 120px)",
-            cursor: "default",
-            position: "absolute",
-          }}
-          onMouseEnter={onDescEnter}
-          onMouseLeave={onDescLeave}
-        >
-          {/* Camada base — texto cinza */}
-          <p style={{ color: "rgba(0,0,0,0.40)" }}>
-            Solucoes em vidro que unem design, seguranca e funcionalidade,
-            transformando projetos arquitetonicos em ambientes modernos e sofisticados.
-          </p>
-          {/* Camada azul — revelada da esquerda para a direita via clip-path */}
-          <div
-            ref={blueLayerRef}
-            style={{
-              position: "absolute",
-              inset: 0,
-              clipPath: "inset(0 100% 0 0)",
-              color: "#1C4587",
-            }}
-          >
-            <p>
-              Solucoes em vidro que unem design, seguranca e funcionalidade,
-              transformando projetos arquitetonicos em ambientes modernos e sofisticados.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
+  return (
+    <motion.div
+      ref={ref}
+      className="absolute bottom-8 right-12 z-10"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 3.4, duration: 0.6 }}
+    >
+      <Image
+        src="/logo-mc.png"
+        alt=""
+        width={82}
+        height={82}
+        aria-hidden="true"
+        className="object-contain"
+        style={{ opacity: 0.30 }}
+      />
+    </motion.div>
   );
 }

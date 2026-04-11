@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import LoadingScreen from "@/components/LoadingScreen";
+import ArchitectModeProvider from "@/hooks/useArchitectMode";
 
 export const metadata: Metadata = {
   title: "MC Vidracaria | Vidros & Design - Solucoes em Vidro Premium",
@@ -26,9 +28,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="h-full antialiased">
       <body className="min-h-full flex flex-col font-body">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <ArchitectModeProvider>
+          <LoadingScreen />
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </ArchitectModeProvider>
       </body>
     </html>
   );
