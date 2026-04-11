@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -11,10 +12,11 @@ gsap.registerPlugin(useGSAP);
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const WHATSAPP_NUMBER = "5511941123118";
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 const STEP_TITLES = [
     "Qual serviço você precisa?",
+    "Como você prefere receber?",
     "Quais são as dimensões?",
     "Personalize seu pedido",
     "Seus dados de contato",
@@ -23,6 +25,7 @@ const STEP_TITLES = [
 
 const STEP_SUBTITLES = [
     "Selecione o tipo de serviço desejado",
+    "Escolha a forma de aquisição do seu produto",
     "Informe as medidas para o cálculo da área",
     "Escolha as especificações do seu projeto",
     "Para enviarmos o orçamento pelo WhatsApp",
@@ -280,6 +283,7 @@ interface Props {
 
 interface FormState {
     servicoSlug: string;
+    modalidade: "" | "medida" | "pronta";
     largura: string;
     altura: string;
     metros: string;
@@ -292,10 +296,12 @@ interface FormState {
 
 export default function OrcamentoWizard({ initialServico }: Props) {
     const validSlug = services.some(s => s.slug === initialServico) ? initialServico! : "";
+    const router = useRouter();
 
     const [step, setStep] = useState(validSlug ? 1 : 0);
     const [form, setForm] = useState<FormState>({
         servicoSlug: validSlug,
+        modalidade: "",
         largura: "",
         altura: "",
         metros: "",
@@ -349,11 +355,12 @@ export default function OrcamentoWizard({ initialServico }: Props) {
 
     const canProceed = (): boolean => {
         if (step === 0) return !!form.servicoSlug;
-        if (step === 1) {
+        if (step === 1) return form.modalidade === "medida";
+        if (step === 2) {
             if (isLinear) return parseFloat(form.metros) > 0;
             return parseFloat(form.largura) > 0 && parseFloat(form.altura) > 0;
         }
-        if (step === 3) return form.nome.trim().length > 0 && (form.whatsapp.trim().length > 0 || form.telefone.trim().length > 0);
+        if (step === 4) return form.nome.trim().length > 0 && (form.whatsapp.trim().length > 0 || form.telefone.trim().length > 0);
         return true;
     };
 
@@ -407,7 +414,7 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                     <button
                         key={svc.slug}
                         type="button"
-                        onClick={() => setForm(f => ({ ...f, servicoSlug: svc.slug, detalhes: {} }))}
+                        onClick={() => setForm(f => ({ ...f, servicoSlug: svc.slug, modalidade: "", detalhes: {} }))}
                         style={{
                             display: "flex",
                             flexDirection: "column",
@@ -1182,11 +1189,112 @@ export default function OrcamentoWizard({ initialServico }: Props) {
         );
     };
 
+    // ── Step 1 — Modalidade ──────────────────────────────────────────────────
+    const renderStepModalidade = () => {
+        const options = [
+            {
+                key: "medida" as const,
+                title: "Personalizado por Medida",
+                subtitle: "Projeto sob medida para o seu espaço, com visita técnica gratuita",
+                icon: (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} style={{ width: 28, height: 28 }}>
+                        <path strokeLinecap="round" d="M3 6h18M3 12h18M3 18h18M9 6v12M15 6v12" />
+                    </svg>
+                ),
+            },
+            {
+                key: "pronta" as const,
+                title: "Pronta Entrega",
+                subtitle: "Produtos em estoque com entrega rápida, compre agora",
+                icon: (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} style={{ width: 28, height: 28 }}>
+                        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+                        <path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
+                    </svg>
+                ),
+            },
+        ];
+
+        return (
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {options.map(opt => {
+                    const sel = form.modalidade === opt.key;
+                    return (
+                        <button
+                            key={opt.key}
+                            type="button"
+                            onClick={() => {
+                                if (opt.key === "pronta") {
+                                    router.push(`/pronta-entrega/${form.servicoSlug}`);
+                                    return;
+                                }
+                                setForm(f => ({ ...f, modalidade: opt.key }));
+                            }}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "20px",
+                                padding: "24px 22px",
+                                borderRadius: "20px",
+                                border: sel ? "2px solid #1C4587" : "1.5px solid rgba(28, 69, 135, 0.12)",
+                                background: sel ? "rgba(28, 69, 135, 0.05)" : "#ffffff",
+                                boxShadow: sel ? "0 4px 24px rgba(28,69,135,0.12)" : "0 2px 8px rgba(0,0,0,0.04)",
+                                cursor: "pointer",
+                                transition: "all 0.22s ease",
+                                textAlign: "left" as const,
+                            }}
+                        >
+                            <div style={{
+                                width: "56px",
+                                height: "56px",
+                                borderRadius: "16px",
+                                background: sel ? "#1C4587" : "rgba(28, 69, 135, 0.07)",
+                                color: sel ? "#ffffff" : "#1C4587",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                                transition: "all 0.22s ease",
+                            }}>
+                                {opt.icon}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <p style={{
+                                    fontFamily: "var(--font-julius)",
+                                    fontSize: "16px",
+                                    color: sel ? "#1C4587" : "#1C1C1C",
+                                    marginBottom: "6px",
+                                    lineHeight: 1.2,
+                                }}>
+                                    {opt.title}
+                                </p>
+                                <p style={{
+                                    fontFamily: "var(--font-body)",
+                                    fontSize: "12px",
+                                    color: "rgba(28, 69, 135, 0.45)",
+                                    lineHeight: 1.5,
+                                }}>
+                                    {opt.subtitle}
+                                </p>
+                            </div>
+                            {opt.key === "pronta" && (
+                                <svg viewBox="0 0 24 24" fill="none" stroke="rgba(28,69,135,0.30)" strokeWidth={1.5} style={{ width: 16, height: 16, flexShrink: 0 }}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                </svg>
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+        );
+    };
+
     const renderCurrentStep = () => {
         if (step === 0) return renderStep0();
-        if (step === 1) return renderStep1();
-        if (step === 2) return renderStep2();
-        if (step === 3) return renderStep3();
+        if (step === 1) return renderStepModalidade();
+        if (step === 2) return renderStep1();
+        if (step === 3) return renderStep2();
+        if (step === 4) return renderStep3();
         return renderStep4();
     };
 
@@ -1294,7 +1402,7 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                 </div>
 
                 {/* Navigation — not shown on step 4 (WhatsApp button handles it) */}
-                {step < 4 && (
+                {step < 5 && (
                     <div style={{
                         display: "flex",
                         justifyContent: step > 0 ? "space-between" : "flex-end",
@@ -1354,7 +1462,7 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                                 boxShadow: proceed ? "0 6px 20px rgba(28, 69, 135, 0.28)" : "none",
                             }}
                         >
-                            {step === 3 ? "Revisar pedido" : "Continuar"}
+                            {step === 4 ? "Revisar pedido" : "Continuar"}
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ width: 13, height: 13 }}>
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                             </svg>
