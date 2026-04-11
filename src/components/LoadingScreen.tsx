@@ -4,56 +4,89 @@ import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 
+const LOGO_INITIAL_SIZE = 320;
+const LOGO_FINAL_SIZE = 48;
+
+const PHASE_1_DURATION = 1.0;
+const PHASE_2_DURATION = 0.9;
+const PHASE_3_DURATION = 0.85;
+
+const PHASE_1_HOLD = 0.8;
+const PHASE_2_HOLD = 0.3;
+
 export default function LoadingScreen() {
     const overlayRef = useRef<HTMLDivElement>(null);
-    const logoRef = useRef<HTMLDivElement>(null);
+    const logoWrapRef = useRef<HTMLDivElement>(null);
     const [mounted, setMounted] = useState(true);
 
     useEffect(() => {
         const overlay = overlayRef.current;
-        const logo = logoRef.current;
-        if (!overlay || !logo) return;
+        const logoWrap = logoWrapRef.current;
+        if (!overlay || !logoWrap) return;
 
-        // Spin the inner wrapper — rotationZ garante giro 2D puro
-        const spinner = logo.querySelector<HTMLDivElement>(".ls-spinner");
-        const colorEl = logo.querySelector<HTMLDivElement>(".ls-color");
-        if (!spinner || !colorEl) return;
+        const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
 
-        const spinTween = gsap.to(spinner, {
-            rotationZ: "+=360",
-            duration: 2,
-            ease: "none",
-            repeat: -1,
-            transformOrigin: "50% 50%",
-        });
-
-        // Cor: azul → preto no elemento de cor (separado do rotation)
-        gsap.fromTo(
-            colorEl,
-            { filter: "brightness(0.35) sepia(1) saturate(20) hue-rotate(195deg)" },
-            {
-                filter: "brightness(0) sepia(0) saturate(0) hue-rotate(0deg)",
-                duration: 2.8,
-                ease: "power1.inOut",
-                delay: 0.2,
-            }
+        tl.fromTo(
+            logoWrap,
+            { scale: 0.6, autoAlpha: 0 },
+            { scale: 1, autoAlpha: 1, duration: PHASE_1_DURATION, ease: "power3.out" }
         );
 
-        // Após 7s: para, snap vertical, fade out
-        const exitTimer = setTimeout(() => {
-            spinTween.kill();
-            gsap.set(spinner, { rotationZ: 0 });
-            gsap.to(overlay, {
-                opacity: 0,
-                duration: 0.65,
+        tl.to(logoWrap, {
+            scale: LOGO_FINAL_SIZE / LOGO_INITIAL_SIZE,
+            duration: PHASE_2_DURATION,
+            ease: "power2.inOut",
+            delay: PHASE_1_HOLD,
+        });
+
+        tl.add(() => {
+            const headerLogo = document.querySelector<HTMLElement>("[data-header-logo]");
+            if (!headerLogo) {
+                gsap.to(overlay, {
+                    autoAlpha: 0,
+                    duration: 0.5,
+                    ease: "power2.inOut",
+                    onComplete: () => {
+                        window.dispatchEvent(new Event("loading-complete"));
+                        setMounted(false);
+                    },
+                });
+                return;
+            }
+
+            const targetRect = headerLogo.getBoundingClientRect();
+            const wrapRect = logoWrap.getBoundingClientRect();
+
+            const deltaX = targetRect.left + targetRect.width / 2 - (wrapRect.left + wrapRect.width / 2);
+            const deltaY = targetRect.top + targetRect.height / 2 - (wrapRect.top + wrapRect.height / 2);
+
+            const exitTl = gsap.timeline();
+
+            exitTl.to(logoWrap, {
+                x: deltaX,
+                y: deltaY,
+                duration: PHASE_3_DURATION,
                 ease: "power2.inOut",
-                onComplete: () => setMounted(false),
+                delay: PHASE_2_HOLD,
             });
-        }, 4000);
+
+            exitTl.to(
+                overlay,
+                {
+                    autoAlpha: 0,
+                    duration: 0.4,
+                    ease: "power2.in",
+                    onComplete: () => {
+                        window.dispatchEvent(new Event("loading-complete"));
+                        setMounted(false);
+                    },
+                },
+                `-=${PHASE_3_DURATION * 0.35}`
+            );
+        });
 
         return () => {
-            clearTimeout(exitTimer);
-            spinTween.kill();
+            tl.kill();
         };
     }, []);
 
@@ -72,28 +105,23 @@ export default function LoadingScreen() {
                 justifyContent: "center",
             }}
         >
-            {/* ls-color: recebe o filtro de cor */}
             <div
-                ref={logoRef}
-                style={{ width: "96px", height: "144px" }}
+                ref={logoWrapRef}
+                style={{
+                    width: `${LOGO_INITIAL_SIZE}px`,
+                    height: `${LOGO_INITIAL_SIZE}px`,
+                    willChange: "transform, opacity",
+                    transformOrigin: "center center",
+                }}
             >
-                {/* ls-color: cor */}
-                <div className="ls-color" style={{ width: "100%", height: "100%" }}>
-                    {/* ls-spinner: rotação pura */}
-                    <div
-                        className="ls-spinner"
-                        style={{ width: "100%", height: "100%", willChange: "transform" }}
-                    >
-                        <Image
-                            src="/logo-mc.png"
-                            alt="MC Vidraçaria"
-                            width={96}
-                            height={144}
-                            style={{ width: "100%", height: "100%", objectFit: "contain" }}
-                            priority
-                        />
-                    </div>
-                </div>
+                <Image
+                    src="/logo-mc.png"
+                    alt="MC Vidraçaria"
+                    width={LOGO_INITIAL_SIZE}
+                    height={LOGO_INITIAL_SIZE}
+                    style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                    priority
+                />
             </div>
         </div>
     );
