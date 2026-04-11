@@ -7,12 +7,11 @@ export default function Home() {
   return (
     <>
       <HeroSection />
-      <div className="h-64 md:h-80 lg:h-[420px] bg-white" aria-hidden="true" />
       <AboutPreview />
       <ServicesSection />
-      <div className="h-36 md:h-52 lg:h-72 bg-white" aria-hidden="true" />
+      <div className="bg-white" style={{ height: "clamp(80px, 10vw, 160px)" }} />
       <WhyChooseUs />
-      <div className="h-36 md:h-52 lg:h-72 bg-white" aria-hidden="true" />
+      <div className="bg-white" style={{ height: "clamp(60px, 8vw, 120px)" }} />
     </>
   );
 }
