@@ -65,7 +65,7 @@ function Background({ active }: { active: boolean }) {
     <div className="absolute inset-0 z-0">
       <div ref={imageRef}>
         <Image
-          src="/images/owner-photo.png"
+          src="/image-home/Image-home.jpeg"
           alt=""
           fill
           priority
