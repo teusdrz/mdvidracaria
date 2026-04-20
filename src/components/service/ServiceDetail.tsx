@@ -64,33 +64,48 @@ export default function ServiceDetail({ service, images }: Props) {
     return (
         <div className="flex flex-col min-h-screen bg-white">
 
-            {/* ── Galeria fullscreen com ScrollTrigger ─────────────────── */}
+            {/* ── Galeria em cards empilhados com ScrollTrigger ──────── */}
             {images.length > 0 ? (
-                <div ref={galleryRef} className="relative h-screen w-full overflow-hidden">
+                <div
+                    ref={galleryRef}
+                    className="relative h-screen w-full overflow-hidden bg-white"
+                >
                     {images.map((src, i) => (
                         <div
                             key={src}
-                            className="sd-panel absolute inset-0"
+                            className="sd-panel absolute inset-0 flex items-center justify-center bg-white"
                             style={{ zIndex: i + 1 }}
                         >
-                            <Image
-                                src={src}
-                                alt={`${service.title} — foto ${i + 1}`}
-                                fill
-                                className="object-cover"
-                                priority={i === 0}
-                                sizes="100vw"
-                            />
-                            {/* Overlay sutil com número da foto */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                            <div className="absolute bottom-8 right-8">
-                                <span
-                                    className="text-[10px] tracking-[0.3em] text-white/40"
-                                    style={{ fontFamily: "var(--font-display)" }}
-                                >
-                                    {String(i + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}
-                                </span>
+                            {/* Card com sombra — efeito baralho */}
+                            <div
+                                className="relative rounded-2xl overflow-hidden"
+                                style={{
+                                    width: "min(88vw, 860px)",
+                                    aspectRatio: "16 / 10",
+                                    boxShadow:
+                                        "0 2px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08), 0 24px 48px rgba(0,0,0,0.06)",
+                                }}
+                            >
+                                <Image
+                                    src={src}
+                                    alt={`${service.title} — foto ${i + 1}`}
+                                    fill
+                                    className="object-cover"
+                                    priority={i === 0}
+                                    sizes="(max-width: 768px) 88vw, 860px"
+                                />
                             </div>
+
+                            {/* Contador discreto abaixo do card */}
+                            <span
+                                className="absolute text-[10px] tracking-[0.3em] text-neutral-300"
+                                style={{
+                                    fontFamily: "var(--font-display)",
+                                    bottom: "clamp(24px, 5vh, 48px)",
+                                }}
+                            >
+                                {String(i + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}
+                            </span>
                         </div>
                     ))}
                 </div>

@@ -76,21 +76,31 @@ export default function ServicesGallery() {
 
     return (
         // Altura 100vh — o ScrollTrigger adiciona o espaço extra via pinSpacing.
-        <div ref={wrapperRef} className="relative h-screen w-full overflow-hidden">
+        <div ref={wrapperRef} className="relative h-screen w-full overflow-hidden bg-white">
             {PANELS.map((panel, i) => (
                 <div
                     key={panel.slug}
-                    className="sg-panel absolute inset-0"
+                    className="sg-panel absolute inset-0 flex items-center justify-center bg-white"
                     style={{ zIndex: i + 1 }}
                 >
-                    <Image
-                        src={panel.src}
-                        alt={panel.title}
-                        fill
-                        className="object-cover"
-                        priority={i === 0}
-                        sizes="100vw"
-                    />
+                    <div
+                        className="relative rounded-2xl overflow-hidden"
+                        style={{
+                            width: "min(88vw, 860px)",
+                            aspectRatio: "16 / 10",
+                            boxShadow:
+                                "0 2px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08), 0 24px 48px rgba(0,0,0,0.06)",
+                        }}
+                    >
+                        <Image
+                            src={panel.src}
+                            alt={panel.title}
+                            fill
+                            className="object-cover"
+                            priority={i === 0}
+                            sizes="(max-width: 768px) 88vw, 860px"
+                        />
+                    </div>
                 </div>
             ))}
         </div>
