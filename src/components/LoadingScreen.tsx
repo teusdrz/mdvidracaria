@@ -47,6 +47,7 @@ export default function LoadingScreen() {
                     duration: 0.5,
                     ease: "power2.inOut",
                     onComplete: () => {
+                        (window as any).__loadingComplete = true;
                         window.dispatchEvent(new Event("loading-complete"));
                         setMounted(false);
                     },
@@ -77,6 +78,7 @@ export default function LoadingScreen() {
                     duration: 0.4,
                     ease: "power2.in",
                     onComplete: () => {
+                        (window as any).__loadingComplete = true;
                         window.dispatchEvent(new Event("loading-complete"));
                         setMounted(false);
                     },

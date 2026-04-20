@@ -37,6 +37,11 @@ export function useTypewriter({
 
     useEffect(() => {
         if (!waitForLoading) return;
+        // If loading already completed before this mount, start immediately
+        if ((window as any).__loadingComplete) {
+            setReady(true);
+            return;
+        }
         const handler = () => setReady(true);
         window.addEventListener("loading-complete", handler);
         return () => window.removeEventListener("loading-complete", handler);
