@@ -75,7 +75,7 @@ export default function AboutPreview() {
   );
 
   return (
-    <section ref={sectionRef} className="relative bg-white overflow-hidden h-screen">
+    <section ref={sectionRef} id="sobre" className="relative bg-white overflow-hidden h-screen">
       <div className="flex items-center justify-center h-full">
         <div
           ref={videoWrapRef}

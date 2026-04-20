@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import Logo from "@/components/Logo";
 import { useArchitectMode } from "@/hooks/useArchitectMode";
@@ -12,7 +12,7 @@ import { useArchitectMode } from "@/hooks/useArchitectMode";
 const NAV_LINKS = [
   { href: "/pronta-entrega", label: "MODELOS" },
   { href: "/", label: "INICIO" },
-  { href: "/sobre", label: "SOBRE" },
+  { href: "/#sobre", label: "SOBRE" },
 ];
 
 const SCROLL_THRESHOLD = 100;
@@ -64,6 +64,7 @@ function useScrolled(threshold: number) {
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const scrolled = useScrolled(SCROLL_THRESHOLD);
   const { active: architectMode, toggle: toggleArchitect } = useArchitectMode();
 
@@ -83,7 +84,7 @@ export default function Header() {
           <Logo size={44} variant={colors.logoVariant} />
         </Link>
 
-        <NavLinks colors={colors} architectMode={architectMode} onToggleArchitect={toggleArchitect} />
+        <NavLinks colors={colors} architectMode={architectMode} onToggleArchitect={toggleArchitect} pathname={pathname} router={router} />
 
         <ContactButton colors={colors} />
       </div>
@@ -97,11 +98,26 @@ function NavLinks({
   colors,
   architectMode,
   onToggleArchitect,
+  pathname,
+  router,
 }: {
   colors: typeof COLORS.hero;
   architectMode: boolean;
   onToggleArchitect: () => void;
+  pathname: string;
+  router: ReturnType<typeof useRouter>;
 }) {
+
+  const handleAnchorClick = (e: React.MouseEvent, href: string) => {
+    if (href.startsWith("/#")) {
+      const id = href.slice(2);
+      if (pathname === "/") {
+        e.preventDefault();
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
   return (
     <nav
       className="hidden lg:flex items-center gap-10"
@@ -111,6 +127,7 @@ function NavLinks({
         <Link
           key={href}
           href={href}
+          onClick={(e) => handleAnchorClick(e, href)}
           style={{
             fontFamily: "var(--font-display)",
             fontSize: "11px",
