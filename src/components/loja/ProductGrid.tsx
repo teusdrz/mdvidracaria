@@ -5,6 +5,7 @@ import type { Product } from "@/data/products";
 import ProductCard from "./ProductCard";
 import CheckoutForm, { type CheckoutData } from "./CheckoutForm";
 import PaymentScreen from "./PaymentScreen";
+import MedidaEspelho from "./MedidaEspelho";
 
 function formatBRL(v: number) {
     return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
@@ -16,7 +17,7 @@ interface Props {
     serviceName: string;
 }
 
-export default function ProductGrid({ products, serviceName }: Props) {
+export default function ProductGrid({ products, serviceSlug, serviceName }: Props) {
     const [cart, setCart] = useState<Map<string, number>>(new Map());
     const [view, setView] = useState<"catalog" | "checkout" | "payment">("catalog");
     const [formData, setFormData] = useState<CheckoutData | null>(null);
@@ -88,6 +89,9 @@ export default function ProductGrid({ products, serviceName }: Props) {
                     />
                 ))}
             </div>
+
+            {/* Custom measurement section for espelhos */}
+            {serviceSlug === "espelhos" && <MedidaEspelho />}
 
             {/* Floating cart bar */}
             {cartItems.length > 0 && (
