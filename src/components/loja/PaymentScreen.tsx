@@ -27,8 +27,6 @@ function formatBRL(v: number) {
 
 const PAYMENT_METHODS = [
     { id: "pix", label: "Pix", desc: "Transferência instantânea" },
-    { id: "card", label: "Cartão na entrega", desc: "Débito ou crédito" },
-    { id: "cash", label: "Dinheiro na entrega", desc: "Em espécie" },
 ] as const;
 
 type PaymentId = (typeof PAYMENT_METHODS)[number]["id"];
