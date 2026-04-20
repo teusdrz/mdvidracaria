@@ -17,7 +17,7 @@ const ALL_PRODUCTS: Product[] = [
         name: "Espelho Bisotê",
         dimensions: "Sob consulta",
         description: "Espelho com bisotê de 4 mm ao redor de toda a borda, acabamento polido premium. Ideal para banheiros, lavabos e halls de entrada. Acompanha suporte de fixação incluso. Vidro de alta transparência com tratamento antiembaçante.",
-        price: 189,
+        price: 500,
         badge: "Mais Vendido",
         image: "/fotos-pront-entrega/espelho-bisote.png",
     },
@@ -27,7 +27,7 @@ const ALL_PRODUCTS: Product[] = [
         name: "Espelho Orgânico Assimétrico",
         dimensions: "Sob consulta",
         description: "Espelho de formato orgânico assimétrico com bordas totalmente polidas. Design contemporâneo inspirado em formas naturais. Peça decorativa que transforma qualquer parede. Pronto para pendurar com suporte discreto incluso.",
-        price: 329,
+        price: 450,
         image: "/fotos-pront-entrega/espelho-organico.png",
     },
     {
