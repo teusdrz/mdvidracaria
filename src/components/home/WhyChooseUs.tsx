@@ -1,10 +1,12 @@
 "use client";
 
-import { useRef, useCallback, CSSProperties } from "react";
+import { useRef, useCallback, useEffect, CSSProperties } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { Gem, ShieldCheck, Clock3, Users } from "lucide-react";
+import { useArchitectMode } from "@/hooks/useArchitectMode";
+import ArchitectWhyCards from "@/components/home/architect/ArchitectWhyCards";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -109,6 +111,23 @@ const REASONS = [
 export default function WhyChooseUs() {
   const sectionRef = useRef<HTMLElement>(null);
   const flippedRef = useRef<Map<string, boolean>>(new Map());
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const { active } = useArchitectMode();
+
+  useEffect(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    const newText = active ? "POR QUE ARQUITETOS NOS ESCOLHEM" : "POR QUE NOS ESCOLHER";
+    gsap.to(el, {
+      autoAlpha: 0, y: -10, duration: 0.25, ease: "power2.in",
+      onComplete: () => {
+        // Atualiza os spans internos do LetterHover não é viável — trocamos por texto simples temporariamente
+        // mas como LetterHover é inline, forçamos via data-text
+        el.setAttribute("data-text", newText);
+        gsap.to(el, { autoAlpha: 1, y: 0, duration: 0.35, ease: "power2.out" });
+      },
+    });
+  }, [active]);
 
   useGSAP(
     () => {
@@ -166,11 +185,12 @@ export default function WhyChooseUs() {
     >
       <div className="w-full text-center px-6" style={{ marginBottom: "6rem" }}>
         <h2
+          ref={titleRef}
           className="wcu-heading inline-block text-[2rem] md:text-[2.5rem] lg:text-[3rem] leading-[1.1]"
           style={{ fontFamily: "var(--font-julius)", letterSpacing: "0.01em" }}
         >
           <LetterHover
-            text="POR QUE NOS ESCOLHER"
+            text={active ? "POR QUE ARQUITETOS NOS ESCOLHEM" : "POR QUE NOS ESCOLHER"}
             baseColor="#1a1a1a"
             hoverColor="#1C4587"
             stagger={0.03}
@@ -178,6 +198,9 @@ export default function WhyChooseUs() {
         </h2>
       </div>
 
+      {active ? (
+        <ArchitectWhyCards />
+      ) : (
       <div style={{ width: "100%", paddingLeft: "clamp(1rem, 4vw, 7rem)", paddingRight: "clamp(1rem, 4vw, 7rem)" }}>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
@@ -289,6 +312,7 @@ export default function WhyChooseUs() {
         </div>
 
       </div>
+      )}
     </section>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -16,6 +16,8 @@ import {
     type LucideIcon,
 } from "lucide-react";
 import { services } from "@/data/services";
+import { useArchitectMode } from "@/hooks/useArchitectMode";
+import ArchitectCarousel from "@/components/home/architect/ArchitectCarousel";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -31,6 +33,20 @@ const ICON_MAP: Record<string, LucideIcon> = {
 
 export default function ServicesSection() {
     const sectionRef = useRef<HTMLElement>(null);
+    const titleRef = useRef<HTMLHeadingElement>(null);
+    const { active } = useArchitectMode();
+
+    useEffect(() => {
+        const el = titleRef.current;
+        if (!el) return;
+        gsap.to(el, {
+            autoAlpha: 0, y: -10, duration: 0.25, ease: "power2.in",
+            onComplete: () => {
+                el.textContent = active ? "PARA ARQUITETOS" : "SOLUÇÕES EM VIDRO";
+                gsap.to(el, { autoAlpha: 1, y: 0, duration: 0.35, ease: "power2.out" });
+            },
+        });
+    }, [active]);
 
     useGSAP(
         () => {
@@ -120,6 +136,7 @@ export default function ServicesSection() {
         >
             <div className="services-title text-center mb-20 md:mb-28 px-6">
                 <h2
+                    ref={titleRef}
                     className="text-4xl md:text-5xl lg:text-6xl text-neutral-800 leading-tight"
                     style={{ fontFamily: "var(--font-julius)" }}
                 >
@@ -127,6 +144,9 @@ export default function ServicesSection() {
                 </h2>
             </div>
 
+            {active ? (
+                <ArchitectCarousel />
+            ) : (
             <div style={{ paddingLeft: "clamp(1rem, 4vw, 7rem)", paddingRight: "clamp(1rem, 4vw, 7rem)" }}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
                     {services.map((service, i) => {
@@ -195,6 +215,7 @@ export default function ServicesSection() {
                     })}
                 </div>
             </div>
+            )}
         </section>
     );
 }
