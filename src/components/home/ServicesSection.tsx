@@ -147,74 +147,74 @@ export default function ServicesSection() {
             {active ? (
                 <ArchitectCarousel />
             ) : (
-            <div style={{ paddingLeft: "clamp(1rem, 4vw, 7rem)", paddingRight: "clamp(1rem, 4vw, 7rem)" }}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-                    {services.map((service, i) => {
-                        const Icon = ICON_MAP[service.icon] ?? Square;
-                        const isLast = i === services.length - 1 && services.length % 3 === 1;
-                        return (
-                            <Link
-                                key={service.slug}
-                                href={`/servicos/${service.slug}`}
-                                className={`service-card block${isLast ? " lg:col-start-2" : ""}`}
-                            >
-                                <div
-                                    className="flex flex-col rounded-2xl h-full"
-                                    style={{
-                                        padding: "clamp(1.75rem, 3vw, 2.5rem)",
-                                        background: "#ffffff",
-                                        border: "1px solid rgba(0,0,0,0.09)",
-                                        boxShadow: "0 1px 8px rgba(0,0,0,0.06)",
-                                        minHeight: "260px",
-                                    }}
-                                    onMouseEnter={(e) => onEnter(e.currentTarget)}
-                                    onMouseLeave={(e) => onLeave(e.currentTarget)}
+                <div style={{ paddingLeft: "clamp(1rem, 4vw, 7rem)", paddingRight: "clamp(1rem, 4vw, 7rem)" }}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
+                        {services.map((service, i) => {
+                            const Icon = ICON_MAP[service.icon] ?? Square;
+                            const isLast = i === services.length - 1 && services.length % 3 === 1;
+                            return (
+                                <Link
+                                    key={service.slug}
+                                    href={`/servicos/${service.slug}`}
+                                    className={`service-card block${isLast ? " lg:col-start-2" : ""}`}
                                 >
                                     <div
-                                        className="sc-icon-bg w-12 h-12 rounded-xl flex items-center justify-center"
-                                        style={{ backgroundColor: "rgba(28,69,135,0.07)", flexShrink: 0 }}
+                                        className="flex flex-col rounded-2xl h-full"
+                                        style={{
+                                            padding: "clamp(1.75rem, 3vw, 2.5rem)",
+                                            background: "#ffffff",
+                                            border: "1px solid rgba(0,0,0,0.09)",
+                                            boxShadow: "0 1px 8px rgba(0,0,0,0.06)",
+                                            minHeight: "260px",
+                                        }}
+                                        onMouseEnter={(e) => onEnter(e.currentTarget)}
+                                        onMouseLeave={(e) => onLeave(e.currentTarget)}
                                     >
-                                        <Icon
-                                            className="sc-icon-svg"
-                                            size={22}
-                                            strokeWidth={1.6}
-                                            style={{ color: "var(--color-primary, #1C4587)" }}
-                                        />
+                                        <div
+                                            className="sc-icon-bg w-12 h-12 rounded-xl flex items-center justify-center"
+                                            style={{ backgroundColor: "rgba(28,69,135,0.07)", flexShrink: 0 }}
+                                        >
+                                            <Icon
+                                                className="sc-icon-svg"
+                                                size={22}
+                                                strokeWidth={1.6}
+                                                style={{ color: "var(--color-primary, #1C4587)" }}
+                                            />
+                                        </div>
+
+                                        <p
+                                            className="mt-6 text-[10px] tracking-[0.3em] text-neutral-300 tabular-nums"
+                                            style={{ fontFamily: "var(--font-body)" }}
+                                        >
+                                            {String(i + 1).padStart(2, "0")}
+                                        </p>
+
+                                        <h3
+                                            className="sc-title mt-2 text-[15px] font-semibold leading-snug"
+                                            style={{ fontFamily: "var(--font-body)", color: "#1a1a1a" }}
+                                        >
+                                            {service.title}
+                                        </h3>
+
+                                        <p
+                                            className="mt-3 mb-auto text-[13px] leading-[1.8] text-neutral-400"
+                                            style={{ fontFamily: "var(--font-body)", fontWeight: 400 }}
+                                        >
+                                            {service.subtitle}
+                                        </p>
+
+                                        <p
+                                            className="mt-6 text-[9px] tracking-[0.22em] uppercase text-neutral-300"
+                                            style={{ fontFamily: "var(--font-display)" }}
+                                        >
+                                            ver mais
+                                        </p>
                                     </div>
-
-                                    <p
-                                        className="mt-6 text-[10px] tracking-[0.3em] text-neutral-300 tabular-nums"
-                                        style={{ fontFamily: "var(--font-body)" }}
-                                    >
-                                        {String(i + 1).padStart(2, "0")}
-                                    </p>
-
-                                    <h3
-                                        className="sc-title mt-2 text-[15px] font-semibold leading-snug"
-                                        style={{ fontFamily: "var(--font-body)", color: "#1a1a1a" }}
-                                    >
-                                        {service.title}
-                                    </h3>
-
-                                    <p
-                                        className="mt-3 mb-auto text-[13px] leading-[1.8] text-neutral-400"
-                                        style={{ fontFamily: "var(--font-body)", fontWeight: 400 }}
-                                    >
-                                        {service.subtitle}
-                                    </p>
-
-                                    <p
-                                        className="mt-6 text-[9px] tracking-[0.22em] uppercase text-neutral-300"
-                                        style={{ fontFamily: "var(--font-display)" }}
-                                    >
-                                        ver mais
-                                    </p>
-                                </div>
-                            </Link>
-                        );
-                    })}
+                                </Link>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
             )}
         </section>
     );

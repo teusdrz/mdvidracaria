@@ -201,117 +201,117 @@ export default function WhyChooseUs() {
       {active ? (
         <ArchitectWhyCards />
       ) : (
-      <div style={{ width: "100%", paddingLeft: "clamp(1rem, 4vw, 7rem)", paddingRight: "clamp(1rem, 4vw, 7rem)" }}>
+        <div style={{ width: "100%", paddingLeft: "clamp(1rem, 4vw, 7rem)", paddingRight: "clamp(1rem, 4vw, 7rem)" }}>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
-          {REASONS.map(({ icon: Icon, title, description, backStat, backLabel, backQuote }) => (
-            <div
-              key={title}
-              className="wcu-card"
-              style={{ minHeight: "320px", perspective: "1200px", cursor: "pointer" }}
-              onMouseEnter={(e) => onEnter(e.currentTarget)}
-              onMouseLeave={(e) => onLeave(e.currentTarget)}
-              onClick={(e) => onFlip(e.currentTarget, title)}
-            >
-              {/* Flipper */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+            {REASONS.map(({ icon: Icon, title, description, backStat, backLabel, backQuote }) => (
               <div
-                className="wcu-flipper relative w-full h-full"
-                style={{ transformStyle: "preserve-3d", minHeight: "320px" }}
+                key={title}
+                className="wcu-card"
+                style={{ minHeight: "320px", perspective: "1200px", cursor: "pointer" }}
+                onMouseEnter={(e) => onEnter(e.currentTarget)}
+                onMouseLeave={(e) => onLeave(e.currentTarget)}
+                onClick={(e) => onFlip(e.currentTarget, title)}
               >
-                {/* FRENTE */}
+                {/* Flipper */}
                 <div
-                  className="absolute inset-0 flex flex-col rounded-2xl"
-                  style={{
-                    padding: "clamp(2rem, 3.5vw, 2.75rem)",
-                    background: "#ffffff",
-                    border: "1px solid rgba(0,0,0,0.09)",
-                    boxShadow: "0 1px 8px rgba(0,0,0,0.06)",
-                    backfaceVisibility: "hidden",
-                    WebkitBackfaceVisibility: "hidden",
-                  }}
+                  className="wcu-flipper relative w-full h-full"
+                  style={{ transformStyle: "preserve-3d", minHeight: "320px" }}
                 >
+                  {/* FRENTE */}
                   <div
-                    className="wcu-gradient-overlay absolute inset-0 rounded-2xl"
+                    className="absolute inset-0 flex flex-col rounded-2xl"
                     style={{
-                      background: "linear-gradient(135deg, #073763 0%, #1C4587 50%, #2A5FAD 100%)",
-                      clipPath: "inset(100% 0 0 0)",
-                      pointerEvents: "none",
+                      padding: "clamp(2rem, 3.5vw, 2.75rem)",
+                      background: "#ffffff",
+                      border: "1px solid rgba(0,0,0,0.09)",
+                      boxShadow: "0 1px 8px rgba(0,0,0,0.06)",
+                      backfaceVisibility: "hidden",
+                      WebkitBackfaceVisibility: "hidden",
                     }}
-                  />
-                  <div
-                    className="wcu-icon-bg relative z-10 w-12 h-12 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: "rgba(28,69,135,0.07)", flexShrink: 0 }}
                   >
-                    <Icon
-                      className="wcu-icon-svg"
-                      size={22}
-                      strokeWidth={1.6}
-                      style={{ color: "var(--color-primary)" }}
+                    <div
+                      className="wcu-gradient-overlay absolute inset-0 rounded-2xl"
+                      style={{
+                        background: "linear-gradient(135deg, #073763 0%, #1C4587 50%, #2A5FAD 100%)",
+                        clipPath: "inset(100% 0 0 0)",
+                        pointerEvents: "none",
+                      }}
                     />
+                    <div
+                      className="wcu-icon-bg relative z-10 w-12 h-12 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: "rgba(28,69,135,0.07)", flexShrink: 0 }}
+                    >
+                      <Icon
+                        className="wcu-icon-svg"
+                        size={22}
+                        strokeWidth={1.6}
+                        style={{ color: "var(--color-primary)" }}
+                      />
+                    </div>
+
+                    <h3
+                      className="wcu-title relative z-10 mt-8 text-[15px] font-semibold leading-snug"
+                      style={{ fontFamily: "var(--font-body)", color: "#1a1a1a" }}
+                    >
+                      {title}
+                    </h3>
+
+                    <p
+                      className="wcu-desc relative z-10 mt-4 mb-auto text-[13px] leading-[1.8] text-neutral-400"
+                      style={{ fontFamily: "var(--font-body)", fontWeight: 400 }}
+                    >
+                      {description}
+                    </p>
+
+                    <p
+                      className="wcu-hint relative z-10 mt-6 text-[9px] tracking-[0.22em] uppercase text-neutral-300"
+                      style={{ fontFamily: "var(--font-display)" }}
+                    >
+                      clique para ver mais
+                    </p>
                   </div>
 
-                  <h3
-                    className="wcu-title relative z-10 mt-8 text-[15px] font-semibold leading-snug"
-                    style={{ fontFamily: "var(--font-body)", color: "#1a1a1a" }}
+                  {/* VERSO */}
+                  <div
+                    className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl text-center"
+                    style={{
+                      padding: "clamp(2rem, 3.5vw, 2.75rem)",
+                      background: "linear-gradient(135deg, #1B38A2 0%, #18318D 50%, #0F2266 100%)",
+                      backfaceVisibility: "hidden",
+                      WebkitBackfaceVisibility: "hidden",
+                      transform: "rotateY(180deg)",
+                    }}
                   >
-                    {title}
-                  </h3>
+                    <span
+                      className="text-[3.5rem] font-bold leading-none text-white"
+                      style={{ fontFamily: "var(--font-julius)" }}
+                    >
+                      {backStat}
+                    </span>
 
-                  <p
-                    className="wcu-desc relative z-10 mt-4 mb-auto text-[13px] leading-[1.8] text-neutral-400"
-                    style={{ fontFamily: "var(--font-body)", fontWeight: 400 }}
-                  >
-                    {description}
-                  </p>
+                    <p
+                      className="mt-4 text-[13px] leading-[1.7] text-white/75"
+                      style={{ fontFamily: "var(--font-body)" }}
+                    >
+                      {backLabel}
+                    </p>
 
-                  <p
-                    className="wcu-hint relative z-10 mt-6 text-[9px] tracking-[0.22em] uppercase text-neutral-300"
-                    style={{ fontFamily: "var(--font-display)" }}
-                  >
-                    clique para ver mais
-                  </p>
-                </div>
+                    <div className="w-10 my-6" style={{ height: "1px", background: "rgba(255,255,255,0.25)" }} />
 
-                {/* VERSO */}
-                <div
-                  className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl text-center"
-                  style={{
-                    padding: "clamp(2rem, 3.5vw, 2.75rem)",
-                    background: "linear-gradient(135deg, #1B38A2 0%, #18318D 50%, #0F2266 100%)",
-                    backfaceVisibility: "hidden",
-                    WebkitBackfaceVisibility: "hidden",
-                    transform: "rotateY(180deg)",
-                  }}
-                >
-                  <span
-                    className="text-[3.5rem] font-bold leading-none text-white"
-                    style={{ fontFamily: "var(--font-julius)" }}
-                  >
-                    {backStat}
-                  </span>
-
-                  <p
-                    className="mt-4 text-[13px] leading-[1.7] text-white/75"
-                    style={{ fontFamily: "var(--font-body)" }}
-                  >
-                    {backLabel}
-                  </p>
-
-                  <div className="w-10 my-6" style={{ height: "1px", background: "rgba(255,255,255,0.25)" }} />
-
-                  <p
-                    className="text-[12px] italic leading-relaxed text-white/50"
-                    style={{ fontFamily: "var(--font-body)" }}
-                  >
-                    &ldquo;{backQuote}&rdquo;
-                  </p>
+                    <p
+                      className="text-[12px] italic leading-relaxed text-white/50"
+                      style={{ fontFamily: "var(--font-body)" }}
+                    >
+                      &ldquo;{backQuote}&rdquo;
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-      </div>
+        </div>
       )}
     </section>
   );
