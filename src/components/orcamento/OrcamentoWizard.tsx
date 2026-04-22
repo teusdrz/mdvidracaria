@@ -85,9 +85,11 @@ const PRECOS: Record<string, { min: number; max: number; unidade: string }> = {
     "cobertura": { min: 550, max: 950, unidade: "m²" },
 };
 
-// Chave PIX para pagamento antecipado (altere para a chave real)
-const PIX_CHAVE = "11999999999";
+// Chave PIX para pagamento antecipado (celular)
+const PIX_CHAVE = "11941123118";
+const PIX_CHAVE_MASCARADA = "(11) *****-****";
 const PIX_TITULAR = "MC Vidracaria";
+const PARCELAMENTO_MAX = 6;
 
 function formatBRL(value: number) {
     return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
@@ -316,6 +318,8 @@ export default function OrcamentoWizard({ initialServico }: Props) {
     const router = useRouter();
 
     const [step, setStep] = useState(validSlug ? 1 : 0);
+    const [parcelas, setParcelas] = useState<number>(1);
+    const [tipoPagamento, setTipoPagamento] = useState<"total" | "sinal">("sinal");
     const [form, setForm] = useState<FormState>({
         servicoSlug: validSlug,
         modalidade: "",
@@ -961,8 +965,8 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                     </p>
                 </div>
 
-                {/* Estimativa resumo */}
-                {estimativaMin > 0 && (
+                {/* Estimativa resumo — mesmo valor da página anterior */}
+                {step3Estimativa && (
                     <div style={{
                         borderRadius: "16px",
                         background: "rgba(28, 69, 135, 0.04)",
@@ -990,7 +994,7 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                                 fontSize: "22px",
                                 color: "#1C4587",
                             }}>
-                                {formatBRL(estimativaMin)} – {formatBRL(estimativaMax)}
+                                {step3Estimativa.label}
                             </p>
                         </div>
                         <p style={{
@@ -1041,8 +1045,166 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                             color: "rgba(28, 69, 135, 0.60)",
                             lineHeight: 1.6,
                         }}>
-                            Agilize seu pedido com um sinal de <strong style={{ color: "#1C4587" }}>30% via PIX</strong> após confirmar o orçamento com nossa equipe. O restante é pago na entrega.
+                            Agilize seu pedido com um sinal de <strong style={{ color: "#1C4587" }}>50% via PIX</strong> após confirmar o orçamento com nossa equipe. O restante é pago na entrega.
                         </p>
+                        <div style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "12px",
+                            padding: "14px 16px",
+                            borderRadius: "12px",
+                            background: "rgba(28, 69, 135, 0.06)",
+                            border: "1px solid rgba(28, 69, 135, 0.12)",
+                        }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#1C4587" strokeWidth={1.5}
+                                    style={{ width: 16, height: 16, flexShrink: 0 }}>
+                                    <rect x="2" y="6" width="20" height="12" rx="2" />
+                                    <path d="M2 10h20M6 15h4" />
+                                </svg>
+                                <p style={{
+                                    fontFamily: "var(--font-display)",
+                                    fontSize: "10px",
+                                    letterSpacing: "0.22em",
+                                    textTransform: "uppercase" as const,
+                                    color: "#1C4587",
+                                }}>
+                                    Escolha como deseja pagar
+                                </p>
+                            </div>
+
+                            {/* Seletor: valor total x sinal 50% */}
+                            <div style={{
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr",
+                                gap: "8px",
+                            }}>
+                                {([
+                                    { id: "total" as const, titulo: "Valor total", sub: "Pague tudo agora" },
+                                    { id: "sinal" as const, titulo: "Sinal 50%", sub: "Restante na entrega" },
+                                ]).map((opt) => {
+                                    const ativo = tipoPagamento === opt.id;
+                                    return (
+                                        <button
+                                            key={opt.id}
+                                            type="button"
+                                            onClick={() => setTipoPagamento(opt.id)}
+                                            style={{
+                                                padding: "12px 10px",
+                                                borderRadius: "10px",
+                                                border: ativo ? "1.5px solid #1C4587" : "1.5px solid rgba(28, 69, 135, 0.15)",
+                                                background: ativo ? "#1C4587" : "#ffffff",
+                                                color: ativo ? "#ffffff" : "rgba(28, 69, 135, 0.70)",
+                                                cursor: "pointer",
+                                                transition: "all 0.15s ease",
+                                                textAlign: "left" as const,
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: "2px",
+                                            }}
+                                        >
+                                            <span style={{
+                                                fontFamily: "var(--font-display)",
+                                                fontSize: "11px",
+                                                letterSpacing: "0.12em",
+                                                textTransform: "uppercase" as const,
+                                            }}>
+                                                {opt.titulo}
+                                            </span>
+                                            <span style={{
+                                                fontFamily: "var(--font-body)",
+                                                fontSize: "10px",
+                                                opacity: 0.85,
+                                            }}>
+                                                {opt.sub}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <p style={{
+                                fontFamily: "var(--font-body)",
+                                fontSize: "11px",
+                                color: "rgba(28, 69, 135, 0.65)",
+                                lineHeight: 1.5,
+                            }}>
+                                Parcele em até <strong>{PARCELAMENTO_MAX}x sem juros</strong>, tanto no valor total quanto no sinal de 50%.
+                            </p>
+
+                            <div style={{
+                                display: "grid",
+                                gridTemplateColumns: `repeat(${PARCELAMENTO_MAX}, minmax(0, 1fr))`,
+                                gap: "6px",
+                            }}>
+                                {Array.from({ length: PARCELAMENTO_MAX }, (_, i) => i + 1).map((n) => {
+                                    const ativo = parcelas === n;
+                                    return (
+                                        <button
+                                            key={n}
+                                            type="button"
+                                            onClick={() => setParcelas(n)}
+                                            style={{
+                                                padding: "10px 6px",
+                                                borderRadius: "10px",
+                                                border: ativo ? "1.5px solid #1C4587" : "1.5px solid rgba(28, 69, 135, 0.15)",
+                                                background: ativo ? "#1C4587" : "#ffffff",
+                                                color: ativo ? "#ffffff" : "rgba(28, 69, 135, 0.65)",
+                                                fontFamily: "var(--font-display)",
+                                                fontSize: "11px",
+                                                letterSpacing: "0.08em",
+                                                cursor: "pointer",
+                                                transition: "all 0.15s ease",
+                                            }}
+                                        >
+                                            {n}x
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {(() => {
+                                const totalRef = espelhoTotal > 0 ? espelhoTotal : estimativaMin;
+                                if (totalRef <= 0) return null;
+                                const valorAPagar = tipoPagamento === "total" ? totalRef : Math.round(totalRef * 0.5);
+                                const valorParcela = valorAPagar / parcelas;
+                                const restante = totalRef - valorAPagar;
+                                return (
+                                    <div style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "4px",
+                                        marginTop: "2px",
+                                        paddingTop: "10px",
+                                        borderTop: "1px dashed rgba(28, 69, 135, 0.15)",
+                                    }}>
+                                        <p style={{
+                                            fontFamily: "var(--font-body)",
+                                            fontSize: "11px",
+                                            color: "rgba(28, 69, 135, 0.70)",
+                                        }}>
+                                            {tipoPagamento === "total" ? "Valor total" : "Sinal (50%)"}: <strong>{formatBRL(valorAPagar)}</strong>
+                                        </p>
+                                        <p style={{
+                                            fontFamily: "var(--font-julius)",
+                                            fontSize: "16px",
+                                            color: "#1C4587",
+                                        }}>
+                                            {parcelas}x de {formatBRL(valorParcela)} sem juros
+                                        </p>
+                                        {tipoPagamento === "sinal" && restante > 0 && (
+                                            <p style={{
+                                                fontFamily: "var(--font-body)",
+                                                fontSize: "10px",
+                                                color: "rgba(28, 69, 135, 0.55)",
+                                            }}>
+                                                Restante de {formatBRL(restante)} pago na entrega.
+                                            </p>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+                        </div>
                         <div style={{
                             display: "flex",
                             flexDirection: "column",
@@ -1070,7 +1232,7 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                                         color: "#1C4587",
                                         letterSpacing: "0.05em",
                                     }}>
-                                        {PIX_CHAVE}
+                                        {PIX_CHAVE_MASCARADA}
                                     </p>
                                     <p style={{
                                         fontFamily: "var(--font-body)",

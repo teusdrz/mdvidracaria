@@ -19,7 +19,18 @@ const SCROLL_THRESHOLD = 100;
 
 /* ─── cores por estado ─── */
 
-const COLORS = {
+type ColorScheme = {
+  text: string;
+  textHover: string;
+  btnText: string;
+  btnBorder: string;
+  btnHoverText: string;
+  btnHoverBorder: string;
+  btnBg: string;
+  logoVariant: "light" | "dark";
+};
+
+const COLORS: { hero: ColorScheme; scrolled: ColorScheme } = {
   hero: {
     text: "rgba(255,255,255,0.85)",
     textHover: "#ffffff",
@@ -101,7 +112,7 @@ function NavLinks({
   pathname,
   router,
 }: {
-  colors: typeof COLORS.hero;
+  colors: ColorScheme;
   architectMode: boolean;
   onToggleArchitect: () => void;
   pathname: string;
@@ -178,7 +189,7 @@ function NavLinks({
 
 /* ─── botão de contato ─── */
 
-function ContactButton({ colors }: { colors: typeof COLORS.hero }) {
+function ContactButton({ colors }: { colors: ColorScheme }) {
   return (
     <Link
       href="/orcamento"
