@@ -7,6 +7,9 @@ import ArchitectModeProvider from "@/hooks/useArchitectMode";
 
 export const metadata: Metadata = {
   title: "MC Vidracaria | Vidros & Design - Solucoes em Vidro Premium",
+  icons: {
+    icon: "/icon.png",
+  },
   description:
     "MC Vidracaria oferece solucoes em vidro que unem design, seguranca e funcionalidade. Espelhos, box de vidro, guarda corpo, divisorias, sacadas e coberturas. Orcamento online.",
   keywords:
