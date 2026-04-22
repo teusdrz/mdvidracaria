@@ -1436,7 +1436,7 @@ export default function OrcamentoWizard({ initialServico }: Props) {
 
     // ── Step 1 — Modalidade ──────────────────────────────────────────────────
     const renderStepModalidade = () => {
-        const options = [
+        const options: Array<{ key: "medida" | "pronta"; title: string; subtitle: string; icon: React.ReactNode }> = [
             {
                 key: "medida" as const,
                 title: "Personalizado por Medida",
@@ -1462,7 +1462,7 @@ export default function OrcamentoWizard({ initialServico }: Props) {
 
         return (
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {options.map(opt => {
+                {options.filter(o => o.key !== "pronta").map(opt => {
                     const sel = form.modalidade === opt.key;
                     return (
                         <button
