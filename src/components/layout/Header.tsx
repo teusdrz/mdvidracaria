@@ -240,7 +240,7 @@ function ContactButton({ colors }: { colors: ColorScheme }) {
           borderRadius: "3px",
         }}
       />
-      CONTATO
+      ORÇAMENTO
       <span style={{ fontSize: "13px", lineHeight: 1 }}>→</span>
     </Link>
   );
