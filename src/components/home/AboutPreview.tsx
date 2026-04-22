@@ -89,7 +89,7 @@ export default function AboutPreview() {
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
           >
-            <source src="/video-home/video-home.mp4" type="video/mp4" />
+            <source src="/videos/video-sobre.mp4" type="video/mp4" />
           </video>
         </div>
       </div>
