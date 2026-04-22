@@ -3,16 +3,46 @@
 import { useState, useMemo } from "react";
 
 const WHATSAPP = "5511941123118";
+const MARKUP_FORMATO_ESPECIAL = 1.20; // +20% para redondo/irregular
 
 const TIPOS = [
-    { id: "lapidado", label: "Espelho Lapidado", precoM2: 450 },
-    { id: "bisote", label: "Espelho Bisotê", precoM2: 500 },
+    { id: "lapidado", label: "Espelho Lapidado", precoM2: 400 },
+    { id: "bisote", label: "Espelho Bisotê", precoM2: 470 },
 ] as const;
+
+const FORMATOS_LAPIDADO = ["Retangular", "Redondo", "Irregular"] as const;
+const FORMATOS_BISOTE = ["Retangular"] as const;
 
 type TipoId = (typeof TIPOS)[number]["id"];
 
 function formatBRL(v: number) {
     return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+/**
+ * Regra de cobrança MC Vidraçaria — espelhos
+ *
+ * RETANGULAR (padrão):
+ *  - Arredonda ↑ cada medida para próx. múltiplo de 5cm.
+ *  - Sem +10cm de folga, sem markup.
+ *  - Ex.: 97×80 → 100×80 · 1,00×0,80 × R$400 = R$320
+ *
+ * REDONDO / IRREGULAR (corte especial, só Lapidado):
+ *  - Múltiplo de 5 (se precisou arredondar, soma +10cm de folga).
+ *  - +20% sobre o valor final (complexidade do corte).
+ *  - Ex.: 103×80 → 115×80 · 0,92m² × R$400 × 1,20 = R$441,60
+ */
+function ajustarMedidaRetangular(metros: number): number {
+    const cm = Math.round(metros * 100);
+    if (cm <= 0) return 0;
+    return Math.ceil(cm / 5) * 5;
+}
+
+function ajustarMedidaEspecial(metros: number): number {
+    const cm = Math.round(metros * 100);
+    if (cm <= 0) return 0;
+    if (cm % 5 === 0) return cm;
+    return Math.ceil(cm / 5) * 5 + 10;
 }
 
 const tag: React.CSSProperties = {
@@ -25,19 +55,30 @@ const tag: React.CSSProperties = {
 
 export default function MedidaEspelho() {
     const [tipo, setTipo] = useState<TipoId | null>(null);
+    const [formato, setFormato] = useState<string>("Retangular");
     const [largura, setLargura] = useState("");
     const [altura, setAltura] = useState("");
 
     const larg = parseFloat(largura.replace(",", ".")) || 0;
     const alt = parseFloat(altura.replace(",", ".")) || 0;
-    const area = larg * alt;
 
     const precoM2 = useMemo(
         () => TIPOS.find((t) => t.id === tipo)?.precoM2 ?? 0,
         [tipo],
     );
 
-    const total = area * precoM2;
+    // Formatos disponíveis dependem do tipo (Bisotê só aceita retangular)
+    const formatosDisponiveis = tipo === "bisote" ? FORMATOS_BISOTE : FORMATOS_LAPIDADO;
+
+    // Seleciona regra conforme formato
+    const isFormatoEspecial = formato === "Redondo" || formato === "Irregular";
+    const largAjustadaCm = isFormatoEspecial ? ajustarMedidaEspecial(larg) : ajustarMedidaRetangular(larg);
+    const altAjustadaCm = isFormatoEspecial ? ajustarMedidaEspecial(alt) : ajustarMedidaRetangular(alt);
+    const areaCobrada = (largAjustadaCm * altAjustadaCm) / 10000; // m²
+
+    const subtotal = areaCobrada * precoM2;
+    const total = isFormatoEspecial ? subtotal * MARKUP_FORMATO_ESPECIAL : subtotal;
+
     const valid = tipo && larg > 0 && alt > 0;
 
     const handleWhatsApp = () => {
@@ -47,8 +88,9 @@ export default function MedidaEspelho() {
         const msg =
             `Olá! Gostaria de solicitar um espelho *por medida*.\n\n` +
             `🪞 *Tipo:* ${tipoLabel}\n` +
-            `📐 *Dimensões:* ${largura}m × ${altura}m\n` +
-            `📏 *Área:* ${area.toFixed(2)} m²\n` +
+            `� *Formato:* ${formato}\n` +
+            `📐 *Medida solicitada:* ${largura}m × ${altura}m\n` +
+            `📏 *Medida cobrada:* ${(largAjustadaCm / 100).toFixed(2)}m × ${(altAjustadaCm / 100).toFixed(2)}m (${areaCobrada.toFixed(2)} m²)\n` +
             `💰 *Valor estimado:* ${formatBRL(total)}\n\n` +
             `Aguardo retorno. Obrigado!`;
 
@@ -57,6 +99,12 @@ export default function MedidaEspelho() {
             "_blank",
             "noopener,noreferrer",
         );
+    };
+
+    const handleSelectTipo = (id: TipoId) => {
+        setTipo(id);
+        // Bisotê não suporta Redondo/Irregular — força retangular
+        if (id === "bisote") setFormato("Retangular");
     };
 
     return (
@@ -103,7 +151,7 @@ export default function MedidaEspelho() {
                         <button
                             key={t.id}
                             type="button"
-                            onClick={() => setTipo(t.id)}
+                            onClick={() => handleSelectTipo(t.id)}
                             style={{
                                 flex: "1 1 0",
                                 minWidth: "140px",
@@ -141,6 +189,52 @@ export default function MedidaEspelho() {
                     );
                 })}
             </div>
+
+            {/* Formato (Bisotê → só Retangular) */}
+            {tipo && (
+                <>
+                    <p style={{ ...tag, marginBottom: "10px" }}>Formato</p>
+                    <div style={{ display: "flex", gap: "8px", marginBottom: "24px", flexWrap: "wrap" }}>
+                        {formatosDisponiveis.map((f) => {
+                            const sel = formato === f;
+                            return (
+                                <button
+                                    key={f}
+                                    type="button"
+                                    onClick={() => setFormato(f)}
+                                    style={{
+                                        padding: "10px 20px",
+                                        borderRadius: "100px",
+                                        border: sel ? "1.5px solid #1C4587" : "1.5px solid rgba(28,69,135,0.15)",
+                                        background: sel ? "#1C4587" : "#ffffff",
+                                        color: sel ? "#ffffff" : "rgba(28,69,135,0.60)",
+                                        fontFamily: "var(--font-display)",
+                                        fontSize: "10px",
+                                        letterSpacing: "0.15em",
+                                        textTransform: "uppercase",
+                                        cursor: "pointer",
+                                        transition: "all 0.2s ease",
+                                    }}
+                                >
+                                    {f}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {tipo === "bisote" && (
+                        <p style={{
+                            fontFamily: "var(--font-body)",
+                            fontSize: "11px",
+                            color: "rgba(28,69,135,0.45)",
+                            marginTop: "-16px",
+                            marginBottom: "24px",
+                            fontStyle: "italic",
+                        }}>
+                            * Espelho Bisotê é produzido apenas em formato retangular.
+                        </p>
+                    )}
+                </>
+            )}
 
             {/* Dimensions */}
             <p style={{ ...tag, marginBottom: "10px" }}>Dimensões (em metros)</p>
@@ -234,38 +328,67 @@ export default function MedidaEspelho() {
                         marginBottom: "20px",
                         display: "flex",
                         flexDirection: "column",
-                        gap: "6px",
+                        gap: "8px",
                     }}
                 >
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <span style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "rgba(28,69,135,0.55)" }}>
-                            Área total
+                            Medida solicitada
                         </span>
                         <span style={{ fontFamily: "var(--font-julius)", fontSize: "13px", color: "#1C1C1C" }}>
-                            {area.toFixed(2)} m²
+                            {larg.toFixed(2)}m × {alt.toFixed(2)}m
                         </span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <span style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "rgba(28,69,135,0.55)" }}>
-                            Preço / m²
+                            Medida cobrada <span style={{ fontSize: "10px", opacity: 0.7 }}>
+                                ({isFormatoEspecial ? "múltiplo de 5 + 10cm" : "múltiplo de 5"})
+                            </span>
                         </span>
                         <span style={{ fontFamily: "var(--font-julius)", fontSize: "13px", color: "#1C1C1C" }}>
-                            {formatBRL(precoM2)}
+                            {(largAjustadaCm / 100).toFixed(2)}m × {(altAjustadaCm / 100).toFixed(2)}m
                         </span>
                     </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "rgba(28,69,135,0.55)" }}>
+                            Área cobrada
+                        </span>
+                        <span style={{ fontFamily: "var(--font-julius)", fontSize: "13px", color: "#1C1C1C" }}>
+                            {areaCobrada.toFixed(2)} m²
+                        </span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "rgba(28,69,135,0.55)" }}>
+                            Subtotal <span style={{ fontSize: "10px", opacity: 0.7 }}>({formatBRL(precoM2)}/m²)</span>
+                        </span>
+                        <span style={{ fontFamily: "var(--font-julius)", fontSize: "13px", color: "#1C1C1C" }}>
+                            {formatBRL(subtotal)}
+                        </span>
+                    </div>
+                    {isFormatoEspecial && (
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <span style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "rgba(28,69,135,0.55)" }}>
+                                Acréscimo corte especial (20%)
+                            </span>
+                            <span style={{ fontFamily: "var(--font-julius)", fontSize: "13px", color: "#1C1C1C" }}>
+                                {formatBRL(total - subtotal)}
+                            </span>
+                        </div>
+                    )}
                     <div
                         style={{
                             borderTop: "1px solid rgba(28,69,135,0.08)",
-                            paddingTop: "8px",
+                            paddingTop: "10px",
                             marginTop: "4px",
                             display: "flex",
                             justifyContent: "space-between",
+                            alignItems: "center",
                         }}
                     >
                         <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(28,69,135,0.55)" }}>
                             Valor estimado
                         </span>
-                        <span style={{ fontFamily: "var(--font-julius)", fontSize: "20px", color: "#1C4587" }}>
+                        <span style={{ fontFamily: "var(--font-julius)", fontSize: "22px", color: "#1C4587" }}>
                             {formatBRL(total)}
                         </span>
                     </div>

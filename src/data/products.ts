@@ -17,7 +17,7 @@ const ALL_PRODUCTS: Product[] = [
         name: "Espelho Bisotê",
         dimensions: "Sob consulta",
         description: "Espelho com bisotê de 4 mm ao redor de toda a borda, acabamento polido premium. Ideal para banheiros, lavabos e halls de entrada. Acompanha suporte de fixação incluso. Vidro de alta transparência com tratamento antiembaçante.",
-        price: 500,
+        price: 450,
         badge: "Mais Vendido",
         image: "/fotos-pront-entrega/espelho-bisote.png",
     },

@@ -43,7 +43,7 @@ const DETALHES: Record<string, { label: string; key: string; options: string[] }
         { label: "Modelo", key: "modelo", options: ["Box de canto", "Box frontal", "Box em L"] },
     ],
     "espelhos": [
-        { label: "Acabamento", key: "acabamento", options: ["Reto", "Bisotado"] },
+        { label: "Acabamento", key: "acabamento", options: ["Lapidado", "Bisotado"] },
         { label: "Formato", key: "formato", options: ["Retangular", "Redondo", "Irregular"] },
         { label: "Ambiente", key: "ambiente", options: ["Banheiro", "Sala", "Closet", "Outro"] },
     ],
@@ -92,6 +92,23 @@ const PIX_TITULAR = "MC Vidracaria";
 function formatBRL(value: number) {
     return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 }
+
+
+
+function ajustarMedidaRetangularCm(metros: number): number {
+    const cm = Math.round(metros * 100);
+    if (cm <= 0) return 0;
+    return Math.ceil(cm / 5) * 5;
+}
+
+function ajustarMedidaEspecialCm(metros: number): number {
+    const cm = Math.round(metros * 100);
+    if (cm <= 0) return 0;
+    if (cm % 5 === 0) return cm;
+    return Math.ceil(cm / 5) * 5 + 10;
+}
+
+const ESPELHO_MARKUP_ESPECIAL = 1.20; // +20% apenas para redondo/irregular
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -368,11 +385,44 @@ export default function OrcamentoWizard({ initialServico }: Props) {
     const estimativaMin = preco ? Math.round(preco.min * area) : 0;
     const estimativaMax = preco ? Math.round(preco.max * area) : 0;
 
+    // Step 3 — preço reativo baseado nas opções selecionadas
+    const acabamentoSel = form.detalhes["acabamento"];
+    const precoEspelhoUnit =
+        form.servicoSlug === "espelhos" && acabamentoSel === "Lapidado" ? 400 :
+            form.servicoSlug === "espelhos" && acabamentoSel === "Bisotado" ? 470 :
+                null;
+
+    // Espelhos: regra varia conforme formato
+    const formatoEspelho = form.detalhes["formato"] ?? "Retangular";
+    const isEspelhoEspecial = form.servicoSlug === "espelhos" && (formatoEspelho === "Redondo" || formatoEspelho === "Irregular");
+    const ajustarCm = isEspelhoEspecial ? ajustarMedidaEspecialCm : ajustarMedidaRetangularCm;
+    const espelhoLargCm = form.servicoSlug === "espelhos" ? ajustarCm(parseFloat(form.largura) || 0) : 0;
+    const espelhoAltCm = form.servicoSlug === "espelhos" ? ajustarCm(parseFloat(form.altura) || 0) : 0;
+    const espelhoAreaCobrada = (espelhoLargCm * espelhoAltCm) / 10000;
+    const espelhoMarkup = isEspelhoEspecial ? ESPELHO_MARKUP_ESPECIAL : 1;
+    const espelhoTotal = precoEspelhoUnit !== null
+        ? Math.round(espelhoAreaCobrada * precoEspelhoUnit * espelhoMarkup)
+        : 0;
+
+    const step3Estimativa = area > 0 && preco
+        ? precoEspelhoUnit !== null && espelhoTotal > 0
+            ? {
+                label: formatBRL(espelhoTotal),
+                sub: `${(espelhoLargCm / 100).toFixed(2)}×${(espelhoAltCm / 100).toFixed(2)}m · R$${precoEspelhoUnit}/m²${isEspelhoEspecial ? " +20%" : ""}`,
+            }
+            : estimativaMin > 0
+                ? { label: `${formatBRL(estimativaMin)} – ${formatBRL(estimativaMax)}`, sub: "estimativa" }
+                : null
+        : null;
+
     const buildWhatsAppMessage = () => {
         const svc = selectedService?.title ?? "";
+        const isEspelhoComPreco = form.servicoSlug === "espelhos" && espelhoTotal > 0;
         const medidas = isLinear
             ? `${parseFloat(form.metros).toFixed(2)}m linear`
-            : `${parseFloat(form.largura).toFixed(2)}m × ${parseFloat(form.altura).toFixed(2)}m — ${area.toFixed(2)} m²`;
+            : isEspelhoComPreco
+                ? `${parseFloat(form.largura).toFixed(2)}m × ${parseFloat(form.altura).toFixed(2)}m (cobrado: ${(espelhoLargCm / 100).toFixed(2)}m × ${(espelhoAltCm / 100).toFixed(2)}m — ${espelhoAreaCobrada.toFixed(2)} m²)`
+                : `${parseFloat(form.largura).toFixed(2)}m × ${parseFloat(form.altura).toFixed(2)}m — ${area.toFixed(2)} m²`;
         const groups = DETALHES[form.servicoSlug] ?? [];
         const specsLines = Object.entries(form.detalhes)
             .filter(([, v]) => v)
@@ -382,9 +432,11 @@ export default function OrcamentoWizard({ initialServico }: Props) {
             })
             .join("\n");
         const obs = form.observacoes ? `\n\n📝 *Observações:*\n   ${form.observacoes}` : "";
-        const estFx = estimativaMin > 0
-            ? `\n💰 *Estimativa preliminar:* ${formatBRL(estimativaMin)} – ${formatBRL(estimativaMax)} _(confirmado após visita técnica)_`
-            : "";
+        const estFx = isEspelhoComPreco
+            ? `\n💰 *Valor estimado:* ${formatBRL(espelhoTotal)} _(R$${precoEspelhoUnit}/m² × área cobrada${isEspelhoEspecial ? " + 20% corte especial" : ""})_`
+            : estimativaMin > 0
+                ? `\n💰 *Estimativa preliminar:* ${formatBRL(estimativaMin)} – ${formatBRL(estimativaMax)} _(confirmado após visita técnica)_`
+                : "";
         const contatoWa = form.whatsapp ? `\n📱 *WhatsApp:* ${form.whatsapp}` : "";
         const contatoTel = form.telefone ? `\n📞 *Telefone:* ${form.telefone}` : "";
 
@@ -709,7 +761,27 @@ export default function OrcamentoWizard({ initialServico }: Props) {
 
     // ── Step 2 — Detalhes ────────────────────────────────────────────────────
     const renderStep2 = () => {
-        const groups = DETALHES[form.servicoSlug] ?? [];
+        const rawGroups = DETALHES[form.servicoSlug] ?? [];
+
+        // Regra especial para espelhos: Bisotado só permite formato Retangular
+        const groups = rawGroups.map(g => {
+            if (form.servicoSlug === "espelhos" && g.key === "formato" && form.detalhes["acabamento"] === "Bisotado") {
+                return { ...g, options: ["Retangular"] };
+            }
+            return g;
+        });
+
+        const handleSelect = (key: string, v: string) => {
+            setForm(f => {
+                const next = { ...f.detalhes, [key]: v };
+                // Se mudou acabamento para Bisotado, força formato Retangular
+                if (f.servicoSlug === "espelhos" && key === "acabamento" && v === "Bisotado") {
+                    next.formato = "Retangular";
+                }
+                return { ...f, detalhes: next };
+            });
+        };
+
         return (
             <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
                 {groups.map(group => (
@@ -718,9 +790,20 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                         label={group.label}
                         options={group.options}
                         selected={form.detalhes[group.key] ?? ""}
-                        onSelect={v => setForm(f => ({ ...f, detalhes: { ...f.detalhes, [group.key]: v } }))}
+                        onSelect={v => handleSelect(group.key, v)}
                     />
                 ))}
+                {form.servicoSlug === "espelhos" && form.detalhes["acabamento"] === "Bisotado" && (
+                    <p style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: "11px",
+                        color: "rgba(28,69,135,0.50)",
+                        fontStyle: "italic",
+                        marginTop: "-20px",
+                    }}>
+                        * Espelho Bisotê é produzido apenas em formato retangular.
+                    </p>
+                )}
                 {/* Observações */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     <label style={{
@@ -874,7 +957,7 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                         color: "rgba(28, 69, 135, 0.65)",
                         lineHeight: 1.6,
                     }}>
-                        Nossa equipe retorna em <strong>até 2 horas</strong> com o orçamento completo e agendamento de visita técnica <strong>gratuita</strong>.
+                        Nossa equipe retorna em <strong>até 5 dias úteis</strong> com o orçamento completo e agendamento de visita técnica <strong>gratuita</strong>.
                     </p>
                 </div>
 
@@ -1438,6 +1521,51 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                                 </svg>
                                 Voltar
                             </button>
+                        )}
+
+                        {step === 3 && step3Estimativa && (
+                            <div style={{
+                                position: "fixed",
+                                bottom: "24px",
+                                right: "24px",
+                                zIndex: 50,
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "flex-end",
+                                gap: "4px",
+                                padding: "16px 22px",
+                                borderRadius: "18px",
+                                background: "#ffffff",
+                                border: "1.5px solid rgba(28, 69, 135, 0.15)",
+                                boxShadow: "0 8px 32px rgba(28, 69, 135, 0.14)",
+                            }}>
+                                <p style={{
+                                    fontFamily: "var(--font-display)",
+                                    fontSize: "9px",
+                                    letterSpacing: "0.28em",
+                                    textTransform: "uppercase" as const,
+                                    color: "rgba(28, 69, 135, 0.40)",
+                                    marginBottom: "2px",
+                                }}>
+                                    Estimativa
+                                </p>
+                                <p style={{
+                                    fontFamily: "var(--font-julius)",
+                                    fontSize: "22px",
+                                    color: "#1C4587",
+                                    lineHeight: 1,
+                                    whiteSpace: "nowrap" as const,
+                                }}>
+                                    {step3Estimativa.label}
+                                </p>
+                                <p style={{
+                                    fontFamily: "var(--font-body)",
+                                    fontSize: "11px",
+                                    color: "rgba(28, 69, 135, 0.42)",
+                                }}>
+                                    {step3Estimativa.sub}
+                                </p>
+                            </div>
                         )}
 
                         <button
