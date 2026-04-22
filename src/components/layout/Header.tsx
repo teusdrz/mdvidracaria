@@ -10,7 +10,7 @@ import { useArchitectMode } from "@/hooks/useArchitectMode";
 /* ─── dados ─── */
 
 const NAV_LINKS = [
-  { href: "/pronta-entrega", label: "MODELOS" },
+  { href: "/#solucoes", label: "MODELOS" },
   { href: "/", label: "INICIO" },
   { href: "/#sobre", label: "SOBRE" },
 ];
