@@ -7,10 +7,10 @@ import gsap from "gsap";
 
 const NAV_LINKS = [
   { label: "Início", href: "/" },
-  { label: "Sobre Nós", href: "/sobre" },
-  { label: "Serviços", href: "/servicos" },
+  { label: "Modelos", href: "/#solucoes" },
+  { label: "Sobre Nós", href: "/#sobre" },
   { label: "Orçamento", href: "/orcamento" },
-  { label: "Contato", href: "/contato" },
+  { label: "Contato", href: "https://wa.me/5511941123118", external: true },
 ];
 
 const SOCIAL_LINKS = [
@@ -180,19 +180,35 @@ export default function Footer() {
               Páginas
             </h4>
             <ul className="flex flex-col gap-3">
-              {NAV_LINKS.map(({ label, href }) => (
+              {NAV_LINKS.map(({ label, href, external }) => (
                 <li key={href}>
-                  <Link
-                    href={href}
-                    className="text-[13px]"
-                    style={{ fontFamily: "var(--font-body)" }}
-                  >
-                    <LetterHover
-                      text={label}
-                      baseColor="rgba(255,255,255,0.5)"
-                      hoverColor="#93C5FD"
-                    />
-                  </Link>
+                  {external ? (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[13px]"
+                      style={{ fontFamily: "var(--font-body)" }}
+                    >
+                      <LetterHover
+                        text={label}
+                        baseColor="rgba(255,255,255,0.5)"
+                        hoverColor="#93C5FD"
+                      />
+                    </a>
+                  ) : (
+                    <Link
+                      href={href}
+                      className="text-[13px]"
+                      style={{ fontFamily: "var(--font-body)" }}
+                    >
+                      <LetterHover
+                        text={label}
+                        baseColor="rgba(255,255,255,0.5)"
+                        hoverColor="#93C5FD"
+                      />
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
