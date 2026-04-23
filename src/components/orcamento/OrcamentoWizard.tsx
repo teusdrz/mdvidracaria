@@ -320,6 +320,7 @@ export default function OrcamentoWizard({ initialServico }: Props) {
     const [step, setStep] = useState(validSlug ? 1 : 0);
     const [parcelas, setParcelas] = useState<number>(1);
     const [tipoPagamento, setTipoPagamento] = useState<"total" | "sinal">("sinal");
+    const [isMobile, setIsMobile] = useState(false);
     const [form, setForm] = useState<FormState>({
         servicoSlug: validSlug,
         modalidade: "",
@@ -344,7 +345,13 @@ export default function OrcamentoWizard({ initialServico }: Props) {
         );
     }, { scope: wrapperRef });
 
-    // Scroll to top on step change
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 600);
+        check();
+        window.addEventListener("resize", check);
+        return () => window.removeEventListener("resize", check);
+    }, []);
+
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, [step]);
@@ -456,6 +463,136 @@ export default function OrcamentoWizard({ initialServico }: Props) {
 
         return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
     };
+
+    const buildWhatsAppSimple = () => {
+        const svc = selectedService?.title ?? "";
+        const msg = `Olá! Gostaria de solicitar um *orçamento* para *${svc}*. Pode me ajudar?`;
+        return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    };
+
+    // ── Step WhatsApp — Serviços sem medida ──────────────────────────────────
+    const renderStepWhatsAppOnly = () => (
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            {/* Service card */}
+            <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "16px",
+                padding: "20px 22px",
+                borderRadius: "18px",
+                border: "1.5px solid rgba(28, 69, 135, 0.12)",
+                background: "#ffffff",
+                boxShadow: "0 2px 12px rgba(28, 69, 135, 0.06)",
+            }}>
+                <div style={{
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "14px",
+                    background: "#1C4587",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#ffffff",
+                    flexShrink: 0,
+                }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} style={{ width: 24, height: 24 }}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </div>
+                <div>
+                    <p style={{
+                        fontFamily: "var(--font-display)",
+                        fontSize: "9px",
+                        letterSpacing: "0.3em",
+                        textTransform: "uppercase" as const,
+                        color: "rgba(28, 69, 135, 0.40)",
+                        marginBottom: "4px",
+                    }}>
+                        Serviço selecionado
+                    </p>
+                    <p style={{
+                        fontFamily: "var(--font-julius)",
+                        fontSize: "18px",
+                        color: "#1C4587",
+                    }}>
+                        {selectedService?.title}
+                    </p>
+                </div>
+            </div>
+
+            {/* Info */}
+            <div style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "12px",
+                padding: "18px 20px",
+                borderRadius: "14px",
+                background: "rgba(28, 69, 135, 0.04)",
+                border: "1px solid rgba(28, 69, 135, 0.08)",
+            }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#1C4587" strokeWidth={1.5} style={{ width: 18, height: 18, flexShrink: 0, marginTop: "1px" }}>
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8v4M12 16h.01" />
+                </svg>
+                <p style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: "13px",
+                    color: "rgba(28, 69, 135, 0.65)",
+                    lineHeight: 1.7,
+                }}>
+                    Para <strong>{selectedService?.title}</strong>, nosso orçamento é feito de forma personalizada com visita técnica gratuita. Fale agora com nossa equipe pelo WhatsApp!
+                </p>
+            </div>
+
+            {/* WhatsApp CTA */}
+            <a
+                href={buildWhatsAppSimple()}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "10px",
+                    padding: "20px 24px",
+                    borderRadius: "16px",
+                    background: "#25D366",
+                    color: "#ffffff",
+                    fontFamily: "var(--font-display)",
+                    fontSize: "11px",
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase" as const,
+                    textDecoration: "none",
+                    boxShadow: "0 8px 28px rgba(37, 211, 102, 0.35)",
+                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                    textAlign: "center" as const,
+                }}
+                onMouseEnter={e => {
+                    (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-3px)";
+                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 16px 40px rgba(37, 211, 102, 0.45)";
+                }}
+                onMouseLeave={e => {
+                    (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
+                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 8px 28px rgba(37, 211, 102, 0.35)";
+                }}
+            >
+                <svg viewBox="0 0 24 24" fill="currentColor" style={{ width: 22, height: 22, flexShrink: 0 }}>
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+                Falar pelo WhatsApp para orçamento
+            </a>
+
+            <p style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "11px",
+                color: "rgba(28, 69, 135, 0.38)",
+                textAlign: "center" as const,
+                lineHeight: 1.6,
+            }}>
+                Nossa equipe responde em horário comercial e agenda a visita técnica gratuita.
+            </p>
+        </div>
+    );
 
     // ── Step 0 — Serviço ─────────────────────────────────────────────────────
     const renderStep0 = () => (
@@ -1534,9 +1671,11 @@ export default function OrcamentoWizard({ initialServico }: Props) {
         );
     };
 
+    const isWhatsAppOnlyStep = step === 1 && form.servicoSlug !== "espelhos";
+
     const renderCurrentStep = () => {
         if (step === 0) return renderStep0();
-        if (step === 1) return renderStepModalidade();
+        if (step === 1) return isWhatsAppOnlyStep ? renderStepWhatsAppOnly() : renderStepModalidade();
         if (step === 2) return renderStep1();
         if (step === 3) return renderStep2();
         if (step === 4) return renderStep3();
@@ -1629,7 +1768,7 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                         lineHeight: 1.2,
                         marginBottom: "8px",
                     }}>
-                        {STEP_TITLES[step]}
+                        {isWhatsAppOnlyStep ? "Solicite seu Orçamento" : STEP_TITLES[step]}
                     </h1>
                     <p style={{
                         fontFamily: "var(--font-body)",
@@ -1637,7 +1776,7 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                         color: "rgba(28, 69, 135, 0.48)",
                         lineHeight: 1.5,
                     }}>
-                        {STEP_SUBTITLES[step]}
+                        {isWhatsAppOnlyStep ? "Fale com nossa equipe pelo WhatsApp e receba seu orçamento" : STEP_SUBTITLES[step]}
                     </p>
                 </div>
 
@@ -1646,60 +1785,55 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                     {renderCurrentStep()}
                 </div>
 
-                {/* Navigation — not shown on step 4 (WhatsApp button handles it) */}
-                {step < 5 && (
+                {/* Voltar button — only for WhatsApp-only step */}
+                {isWhatsAppOnlyStep && (
                     <div style={{
-                        display: "flex",
-                        justifyContent: step > 0 ? "space-between" : "flex-end",
-                        alignItems: "center",
-                        marginTop: "40px",
+                        marginTop: "32px",
                         paddingTop: "24px",
                         borderTop: "1px solid rgba(28, 69, 135, 0.07)",
                     }}>
-                        {step > 0 && (
-                            <button
-                                type="button"
-                                onClick={() => goToStep(step - 1)}
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    padding: "14px 24px",
-                                    borderRadius: "12px",
-                                    border: "1.5px solid rgba(28, 69, 135, 0.15)",
-                                    background: "transparent",
-                                    fontFamily: "var(--font-display)",
-                                    fontSize: "10px",
-                                    letterSpacing: "0.2em",
-                                    textTransform: "uppercase",
-                                    color: "rgba(28, 69, 135, 0.50)",
-                                    cursor: "pointer",
-                                    whiteSpace: "nowrap",
-                                    transition: "all 0.2s ease",
-                                }}
-                            >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ width: 13, height: 13 }}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
-                                </svg>
-                                Voltar
-                            </button>
-                        )}
-
-                        {step === 3 && step3Estimativa && (
-                            <div style={{
-                                position: "fixed",
-                                bottom: "24px",
-                                right: "24px",
-                                zIndex: 50,
+                        <button
+                            type="button"
+                            onClick={() => goToStep(0)}
+                            style={{
                                 display: "flex",
-                                flexDirection: "column",
-                                alignItems: "flex-end",
-                                gap: "4px",
-                                padding: "16px 22px",
-                                borderRadius: "18px",
-                                background: "#ffffff",
+                                alignItems: "center",
+                                gap: "8px",
+                                padding: "14px 24px",
+                                borderRadius: "12px",
                                 border: "1.5px solid rgba(28, 69, 135, 0.15)",
-                                boxShadow: "0 8px 32px rgba(28, 69, 135, 0.14)",
+                                background: "transparent",
+                                fontFamily: "var(--font-display)",
+                                fontSize: "10px",
+                                letterSpacing: "0.2em",
+                                textTransform: "uppercase",
+                                color: "rgba(28, 69, 135, 0.50)",
+                                cursor: "pointer",
+                                whiteSpace: "nowrap",
+                                transition: "all 0.2s ease",
+                            }}
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ width: 13, height: 13 }}>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Voltar
+                        </button>
+                    </div>
+                )}
+
+                {/* Navigation — not shown on step 4 (WhatsApp button handles it) or on WhatsApp-only step */}
+                {step < 5 && !isWhatsAppOnlyStep && (
+                    <>
+                        {step === 3 && step3Estimativa && isMobile && (
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                marginTop: "32px",
+                                padding: "14px 18px",
+                                borderRadius: "14px",
+                                background: "rgba(28, 69, 135, 0.04)",
+                                border: "1px solid rgba(28, 69, 135, 0.10)",
                             }}>
                                 <p style={{
                                     fontFamily: "var(--font-display)",
@@ -1707,57 +1841,141 @@ export default function OrcamentoWizard({ initialServico }: Props) {
                                     letterSpacing: "0.28em",
                                     textTransform: "uppercase" as const,
                                     color: "rgba(28, 69, 135, 0.40)",
-                                    marginBottom: "2px",
                                 }}>
                                     Estimativa
                                 </p>
-                                <p style={{
-                                    fontFamily: "var(--font-julius)",
-                                    fontSize: "22px",
-                                    color: "#1C4587",
-                                    lineHeight: 1,
-                                    whiteSpace: "nowrap" as const,
-                                }}>
-                                    {step3Estimativa.label}
-                                </p>
-                                <p style={{
-                                    fontFamily: "var(--font-body)",
-                                    fontSize: "11px",
-                                    color: "rgba(28, 69, 135, 0.42)",
-                                }}>
-                                    {step3Estimativa.sub}
-                                </p>
+                                <div style={{ textAlign: "right" as const }}>
+                                    <p style={{
+                                        fontFamily: "var(--font-julius)",
+                                        fontSize: "17px",
+                                        color: "#1C4587",
+                                        lineHeight: 1,
+                                        whiteSpace: "nowrap" as const,
+                                    }}>
+                                        {step3Estimativa.label}
+                                    </p>
+                                    <p style={{
+                                        fontFamily: "var(--font-body)",
+                                        fontSize: "10px",
+                                        color: "rgba(28, 69, 135, 0.42)",
+                                        marginTop: "3px",
+                                    }}>
+                                        {step3Estimativa.sub}
+                                    </p>
+                                </div>
                             </div>
                         )}
+                        <div style={{
+                            display: "flex",
+                            justifyContent: step > 0 ? "space-between" : "flex-end",
+                            alignItems: "center",
+                            marginTop: "24px",
+                            paddingTop: "24px",
+                            borderTop: "1px solid rgba(28, 69, 135, 0.07)",
+                        }}>
+                            {step > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => goToStep(step - 1)}
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px",
+                                        padding: "14px 24px",
+                                        borderRadius: "12px",
+                                        border: "1.5px solid rgba(28, 69, 135, 0.15)",
+                                        background: "transparent",
+                                        fontFamily: "var(--font-display)",
+                                        fontSize: "10px",
+                                        letterSpacing: "0.2em",
+                                        textTransform: "uppercase",
+                                        color: "rgba(28, 69, 135, 0.50)",
+                                        cursor: "pointer",
+                                        whiteSpace: "nowrap",
+                                        transition: "all 0.2s ease",
+                                    }}
+                                >
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ width: 13, height: 13 }}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    Voltar
+                                </button>
+                            )}
 
-                        <button
-                            type="button"
-                            onClick={() => proceed && goToStep(step + 1)}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "10px",
-                                padding: "14px 32px",
-                                borderRadius: "12px",
-                                border: "none",
-                                background: proceed ? "#1C4587" : "rgba(28, 69, 135, 0.12)",
-                                color: proceed ? "#ffffff" : "rgba(28, 69, 135, 0.30)",
-                                fontFamily: "var(--font-display)",
-                                fontSize: "10px",
-                                letterSpacing: "0.22em",
-                                textTransform: "uppercase",
-                                cursor: proceed ? "pointer" : "not-allowed",
-                                whiteSpace: "nowrap",
-                                transition: "all 0.25s ease",
-                                boxShadow: proceed ? "0 6px 20px rgba(28, 69, 135, 0.28)" : "none",
-                            }}
-                        >
-                            {step === 4 ? "Revisar pedido" : "Continuar"}
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ width: 13, height: 13 }}>
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    </div>
+                            {step === 3 && step3Estimativa && !isMobile && (
+                                <div style={{
+                                    position: "fixed",
+                                    bottom: "24px",
+                                    right: "24px",
+                                    zIndex: 50,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "flex-end",
+                                    gap: "4px",
+                                    padding: "16px 22px",
+                                    borderRadius: "18px",
+                                    background: "#ffffff",
+                                    border: "1.5px solid rgba(28, 69, 135, 0.15)",
+                                    boxShadow: "0 8px 32px rgba(28, 69, 135, 0.14)",
+                                }}>
+                                    <p style={{
+                                        fontFamily: "var(--font-display)",
+                                        fontSize: "9px",
+                                        letterSpacing: "0.28em",
+                                        textTransform: "uppercase" as const,
+                                        color: "rgba(28, 69, 135, 0.40)",
+                                        marginBottom: "2px",
+                                    }}>
+                                        Estimativa
+                                    </p>
+                                    <p style={{
+                                        fontFamily: "var(--font-julius)",
+                                        fontSize: "22px",
+                                        color: "#1C4587",
+                                        lineHeight: 1,
+                                        whiteSpace: "nowrap" as const,
+                                    }}>
+                                        {step3Estimativa.label}
+                                    </p>
+                                    <p style={{
+                                        fontFamily: "var(--font-body)",
+                                        fontSize: "11px",
+                                        color: "rgba(28, 69, 135, 0.42)",
+                                    }}>
+                                        {step3Estimativa.sub}
+                                    </p>
+                                </div>
+                            )}
+
+                            <button
+                                type="button"
+                                onClick={() => proceed && goToStep(step + 1)}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                    padding: "14px 32px",
+                                    borderRadius: "12px",
+                                    border: "none",
+                                    background: proceed ? "#1C4587" : "rgba(28, 69, 135, 0.12)",
+                                    color: proceed ? "#ffffff" : "rgba(28, 69, 135, 0.30)",
+                                    fontFamily: "var(--font-display)",
+                                    fontSize: "10px",
+                                    letterSpacing: "0.22em",
+                                    textTransform: "uppercase",
+                                    cursor: proceed ? "pointer" : "not-allowed",
+                                    whiteSpace: "nowrap",
+                                    transition: "all 0.25s ease",
+                                    boxShadow: proceed ? "0 6px 20px rgba(28, 69, 135, 0.28)" : "none",
+                                }}
+                            >
+                                {step === 4 ? "Revisar pedido" : "Continuar"}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ width: 13, height: 13 }}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </>
                 )}
             </div>
         </div>
