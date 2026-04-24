@@ -93,6 +93,18 @@ export const serviceCaptions: Record<string, readonly ImageCaption[]> = {
             description:
                 "Acabamento que valoriza o desenho da escada, integra pavimentos e mantém a iluminação natural fluindo entre os ambientes.",
         },
+        {
+            eyebrow: "Varanda residencial",
+            title: "Vidro temperado 10mm",
+            description:
+                "Instalação com fixação em bottons de inox escovado, garantindo resistência estrutural e transparência total para valorizar a vista.",
+        },
+        {
+            eyebrow: "Projeto em execução",
+            title: "Instalação em movimento",
+            description:
+                "Acompanhe o processo de instalação do guarda-corpo: medição precisa, alinhamento milimétrico e acabamento profissional em cada detalhe.",
+        },
     ],
     "envelopamento-e-peliculas": [
         {

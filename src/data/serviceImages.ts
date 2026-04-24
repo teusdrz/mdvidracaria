@@ -21,6 +21,8 @@ export const serviceImages: Record<string, readonly string[]> = {
   "guarda-corpo": [
     "/images/guarda-corpo/image.png",
     "/images/guarda-corpo/image copy.png",
+    "/images/guarda-corpo/guarda-corpo.jpeg",
+    "/images/guarda-corpo/Guarda-corpo1.mp4",
   ],
   "envelopamento-e-peliculas": [
     "/images/envelopamento-e-peliculas/image.png",

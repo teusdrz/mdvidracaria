@@ -180,14 +180,26 @@ export default function ServiceDetail({ service, images }: Props) {
                                             className="relative w-full overflow-hidden rounded-[6px] bg-neutral-100 group"
                                             style={{ aspectRatio: "4 / 3" }}
                                         >
-                                            <Image
-                                                src={src}
-                                                alt={caption.title}
-                                                fill
-                                                className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
-                                                sizes="(max-width: 1024px) 100vw, 58vw"
-                                                priority={index === 0}
-                                            />
+                                            {/\.(mp4|webm|mov)$/i.test(src) ? (
+                                                <video
+                                                    src={src}
+                                                    autoPlay
+                                                    loop
+                                                    muted
+                                                    playsInline
+                                                    preload="metadata"
+                                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+                                                />
+                                            ) : (
+                                                <Image
+                                                    src={src}
+                                                    alt={caption.title}
+                                                    fill
+                                                    className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+                                                    sizes="(max-width: 1024px) 100vw, 58vw"
+                                                    priority={index === 0}
+                                                />
+                                            )}
                                         </div>
                                     </div>
                                 </div>
