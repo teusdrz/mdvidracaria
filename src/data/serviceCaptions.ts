@@ -160,5 +160,12 @@ export const serviceCaptions: Record<string, readonly ImageCaption[]> = {
                 "Valoriza corredores e entradas laterais, mantendo o projeto luminoso e com vedação anti-infiltração.",
         },
     ],
-    sacada: [],
+    sacada: [
+        {
+            eyebrow: "Varanda envidraçada",
+            title: "Sacada em movimento",
+            description:
+                "Sistema de vidros deslizantes com acabamento premium que transforma a varanda em um ambiente protegido de chuva, vento e ruído, preservando a vista e a ventilação.",
+        },
+    ],
 };

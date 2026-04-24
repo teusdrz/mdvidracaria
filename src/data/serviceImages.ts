@@ -34,7 +34,9 @@ export const serviceImages: Record<string, readonly string[]> = {
     "/images/divisorias/image copy.png",
     "/images/divisorias/image copy 2.png",
   ],
-  sacada: [],
+  sacada: [
+    "/sacada/Sacada01.mp4",
+  ],
   cobertura: [
     "/images/cobertura/image.png",
     "/images/cobertura/image copy.png",
