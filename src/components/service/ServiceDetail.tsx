@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import type { Service } from "@/data/services";
+import { serviceCaptions, type ImageCaption } from "@/data/serviceCaptions";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -16,118 +17,208 @@ interface Props {
 }
 
 export default function ServiceDetail({ service, images }: Props) {
-    const galleryRef = useRef<HTMLDivElement>(null);
+    const sectionRef = useRef<HTMLElement>(null);
     const ctaCardRef = useRef<HTMLDivElement>(null);
 
-    useGSAP(() => {
-        if (!ctaCardRef.current) return;
-        gsap.fromTo(
-            ctaCardRef.current,
-            { opacity: 0, y: 40 },
-            {
-                opacity: 1,
-                y: 0,
-                duration: 0.9,
-                ease: "power3.out",
-                scrollTrigger: { trigger: ctaCardRef.current, start: "top 90%" },
-            }
-        );
+    const captions = serviceCaptions[service.slug] ?? [];
+
+    const rows = images.map((src, i) => {
+        const caption: ImageCaption =
+            captions[i] ?? {
+                eyebrow: service.title,
+                title: `${service.title} — detalhe ${i + 1}`,
+                description: service.description,
+            };
+        return { src, caption, index: i };
     });
 
     useGSAP(
         () => {
-            const panels = gsap.utils.toArray<HTMLElement>(".sd-panel");
-            if (panels.length < 2) return;
+            const rowsEls = gsap.utils.toArray<HTMLElement>(".sd-row");
+            rowsEls.forEach((row) => {
+                const text = row.querySelector(".sd-text");
+                const media = row.querySelector(".sd-media");
 
-            // Posiciona todos exceto o primeiro abaixo da viewport
-            gsap.set(panels.slice(1), { yPercent: 100 });
-
-            const tl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: galleryRef.current,
-                    start: "top top",
-                    end: () => `+=${(panels.length - 1) * window.innerHeight}`,
-                    scrub: 1,
-                    pin: true,
-                    pinSpacing: true,
-                    anticipatePin: 1,
-                },
+                if (text) {
+                    gsap.fromTo(
+                        text,
+                        { opacity: 0, y: 40 },
+                        {
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.8,
+                            ease: "power3.out",
+                            scrollTrigger: {
+                                trigger: row,
+                                start: "top 82%",
+                                toggleActions: "play none none reverse",
+                            },
+                        }
+                    );
+                }
+                if (media) {
+                    gsap.fromTo(
+                        media,
+                        { opacity: 0, y: 60 },
+                        {
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.9,
+                            delay: 0.1,
+                            ease: "power3.out",
+                            scrollTrigger: {
+                                trigger: row,
+                                start: "top 82%",
+                                toggleActions: "play none none reverse",
+                            },
+                        }
+                    );
+                }
             });
 
-            panels.slice(1).forEach((panel) => {
-                tl.to(panel, { yPercent: 0, ease: "none", duration: 1 });
-            });
+            if (ctaCardRef.current) {
+                gsap.fromTo(
+                    ctaCardRef.current,
+                    { opacity: 0, y: 40 },
+                    {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.9,
+                        ease: "power3.out",
+                        scrollTrigger: { trigger: ctaCardRef.current, start: "top 90%" },
+                    }
+                );
+            }
         },
-        { scope: galleryRef }
+        { scope: sectionRef }
     );
 
     return (
         <div className="flex flex-col min-h-screen bg-white">
-
-            {/* ── Galeria em cards empilhados com ScrollTrigger ──────── */}
-            {images.length > 0 ? (
+            <section
+                ref={sectionRef}
+                className="w-full bg-white"
+                style={{
+                    paddingTop: "clamp(6rem, 14vh, 10rem)",
+                    paddingBottom: "clamp(4rem, 10vh, 8rem)",
+                }}
+            >
+                {/* Cabeçalho do serviço */}
                 <div
-                    ref={galleryRef}
-                    className="relative h-screen w-full overflow-hidden bg-white"
+                    className="max-w-5xl"
+                    style={{
+                        paddingLeft: "clamp(1.25rem, 6vw, 7rem)",
+                        paddingRight: "clamp(1.25rem, 6vw, 7rem)",
+                        marginBottom: "clamp(4rem, 9vw, 7rem)",
+                    }}
                 >
-                    {images.map((src, i) => (
-                        <div
-                            key={src}
-                            className="sd-panel absolute inset-0 flex items-center justify-center bg-white"
-                            style={{ zIndex: i + 1 }}
-                        >
-                            {/* Card com sombra — efeito baralho */}
-                            <div
-                                className="relative rounded-2xl overflow-hidden"
-                                style={{
-                                    width: "min(88vw, 860px)",
-                                    aspectRatio: "16 / 10",
-                                    boxShadow:
-                                        "0 2px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08), 0 24px 48px rgba(0,0,0,0.06)",
-                                }}
-                            >
-                                <Image
-                                    src={src}
-                                    alt={`${service.title} — foto ${i + 1}`}
-                                    fill
-                                    className="object-cover"
-                                    priority={i === 0}
-                                    sizes="(max-width: 768px) 88vw, 860px"
-                                />
-                            </div>
-
-                            {/* Contador discreto abaixo do card */}
-                            <span
-                                className="absolute text-[10px] tracking-[0.3em] text-neutral-300"
-                                style={{
-                                    fontFamily: "var(--font-display)",
-                                    bottom: "clamp(24px, 5vh, 48px)",
-                                }}
-                            >
-                                {String(i + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}
-                            </span>
-                        </div>
-                    ))}
+                    <p
+                        className="text-[11px] tracking-[0.4em] text-neutral-400 mb-6 uppercase"
+                        style={{ fontFamily: "var(--font-body)" }}
+                    >
+                        Nossas soluções — {service.title}
+                    </p>
+                    <h1
+                        className="text-4xl md:text-5xl lg:text-6xl text-neutral-800 leading-tight mb-8"
+                        style={{ fontFamily: "var(--font-julius)" }}
+                    >
+                        {service.title}
+                    </h1>
+                    <p
+                        className="text-base md:text-lg text-neutral-500 leading-relaxed max-w-2xl"
+                        style={{ fontFamily: "var(--font-body)" }}
+                    >
+                        {service.description}
+                    </p>
                 </div>
-            ) : (
-                <div className="px-6 lg:px-16 max-w-4xl mx-auto w-full pb-24">
-                    <div className="rounded-xl border border-primary/10 p-12 text-center">
-                        <p
-                            className="text-primary/40 text-sm"
-                            style={{ fontFamily: "var(--font-body)" }}
-                        >
-                            Fotos em breve
-                        </p>
+
+                {/* Linhas alternadas texto / imagem */}
+                {rows.length > 0 ? (
+                    <div
+                        className="flex flex-col gap-24 md:gap-32 lg:gap-40"
+                        style={{
+                            paddingLeft: "clamp(1.25rem, 6vw, 7rem)",
+                            paddingRight: "clamp(1.25rem, 6vw, 7rem)",
+                        }}
+                    >
+                        {rows.map(({ src, caption, index }) => {
+                            const reverse = index % 2 === 1;
+                            return (
+                                <div
+                                    key={src}
+                                    className="sd-row grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center"
+                                >
+                                    <div
+                                        className={`sd-text lg:col-span-5 ${reverse ? "lg:col-start-8 lg:row-start-1" : ""
+                                            }`}
+                                    >
+                                        <p
+                                            className="text-[11px] tracking-[0.35em] text-neutral-400 mb-4 tabular-nums uppercase"
+                                            style={{ fontFamily: "var(--font-body)" }}
+                                        >
+                                            {String(index + 1).padStart(2, "0")} — {caption.eyebrow}
+                                        </p>
+                                        <h2
+                                            className="text-3xl md:text-4xl lg:text-[2.4rem] leading-[1.15] text-neutral-900 mb-6"
+                                            style={{ fontFamily: "var(--font-julius)" }}
+                                        >
+                                            {caption.title}
+                                        </h2>
+                                        <p
+                                            className="text-base md:text-[1.05rem] leading-relaxed text-neutral-600 max-w-xl"
+                                            style={{ fontFamily: "var(--font-body)" }}
+                                        >
+                                            {caption.description}
+                                        </p>
+                                    </div>
+
+                                    <div
+                                        className={`sd-media lg:col-span-7 ${reverse ? "lg:col-start-1 lg:row-start-1" : "lg:col-start-6"
+                                            }`}
+                                    >
+                                        <div
+                                            className="relative w-full overflow-hidden rounded-[6px] bg-neutral-100 group"
+                                            style={{ aspectRatio: "4 / 3" }}
+                                        >
+                                            <Image
+                                                src={src}
+                                                alt={caption.title}
+                                                fill
+                                                className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+                                                sizes="(max-width: 1024px) 100vw, 58vw"
+                                                priority={index === 0}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
-                </div>
-            )}
+                ) : (
+                    <div
+                        className="max-w-4xl mx-auto w-full"
+                        style={{
+                            paddingLeft: "clamp(1.25rem, 6vw, 7rem)",
+                            paddingRight: "clamp(1.25rem, 6vw, 7rem)",
+                        }}
+                    >
+                        <div className="rounded-xl border border-primary/10 p-12 text-center">
+                            <p
+                                className="text-primary/40 text-sm"
+                                style={{ fontFamily: "var(--font-body)" }}
+                            >
+                                Fotos em breve
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </section>
 
-            {/* ── Rodapé da página ─────────────────────────────────────── */}
+            {/* Card de CTA */}
             <section
                 className="w-full bg-white flex justify-center items-center"
-                style={{ paddingTop: "120px", paddingBottom: "120px" }}
+                style={{ paddingTop: "60px", paddingBottom: "120px" }}
             >
-                {/* Card container */}
                 <div
                     ref={ctaCardRef}
                     className="cta-card w-[calc(100%-48px)] sm:w-auto"
@@ -140,17 +231,20 @@ export default function ServiceDetail({ service, images }: Props) {
                         borderRadius: "24px",
                         background: "rgba(28, 69, 135, 0.04)",
                         border: "1px solid rgba(28, 69, 135, 0.10)",
-                        boxShadow: "0 4px 40px rgba(28, 69, 135, 0.08), 0 1px 8px rgba(28, 69, 135, 0.05)",
+                        boxShadow:
+                            "0 4px 40px rgba(28, 69, 135, 0.08), 0 1px 8px rgba(28, 69, 135, 0.05)",
                         transition: "transform 0.35s ease, box-shadow 0.35s ease",
                         cursor: "default",
                     }}
-                    onMouseEnter={e => {
+                    onMouseEnter={(e) => {
                         (e.currentTarget as HTMLDivElement).style.transform = "translateY(-6px)";
-                        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 16px 56px rgba(28, 69, 135, 0.16), 0 4px 16px rgba(28, 69, 135, 0.10)";
+                        (e.currentTarget as HTMLDivElement).style.boxShadow =
+                            "0 16px 56px rgba(28, 69, 135, 0.16), 0 4px 16px rgba(28, 69, 135, 0.10)";
                     }}
-                    onMouseLeave={e => {
+                    onMouseLeave={(e) => {
                         (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-                        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 40px rgba(28, 69, 135, 0.08), 0 1px 8px rgba(28, 69, 135, 0.05)";
+                        (e.currentTarget as HTMLDivElement).style.boxShadow =
+                            "0 4px 40px rgba(28, 69, 135, 0.08), 0 1px 8px rgba(28, 69, 135, 0.05)";
                     }}
                 >
                     <Link
@@ -174,8 +268,18 @@ export default function ServiceDetail({ service, images }: Props) {
                         }}
                     >
                         Solicitar orçamento
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ width: "14px", height: "14px" }}>
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            style={{ width: "14px", height: "14px" }}
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M9 5l7 7-7 7"
+                            />
                         </svg>
                     </Link>
                 </div>
