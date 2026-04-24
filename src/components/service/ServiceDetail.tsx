@@ -143,6 +143,7 @@ export default function ServiceDetail({ service, images }: Props) {
                     >
                         {rows.map(({ src, caption, index }) => {
                             const reverse = index % 2 === 1;
+                            const isVideo = /\.(mp4|webm|mov)$/i.test(src);
                             return (
                                 <div
                                     key={src}
@@ -174,13 +175,16 @@ export default function ServiceDetail({ service, images }: Props) {
 
                                     <div
                                         className={`sd-media lg:col-span-7 ${reverse ? "lg:col-start-1 lg:row-start-1" : "lg:col-start-6"
-                                            }`}
+                                            } ${isVideo ? "flex justify-center" : ""}`}
                                     >
                                         <div
-                                            className="relative w-full overflow-hidden rounded-[6px] bg-neutral-100 group"
-                                            style={{ aspectRatio: "4 / 3" }}
+                                            className="relative overflow-hidden rounded-[6px] bg-neutral-100 group"
+                                            style={{
+                                                aspectRatio: isVideo ? "9 / 16" : "4 / 3",
+                                                width: isVideo ? "min(100%, 380px)" : "100%",
+                                            }}
                                         >
-                                            {/\.(mp4|webm|mov)$/i.test(src) ? (
+                                            {isVideo ? (
                                                 <video
                                                     src={src}
                                                     autoPlay
